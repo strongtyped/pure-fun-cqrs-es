@@ -38,10 +38,6 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
 
   import implicitStateF._
 
-  //  private val implicitRunF = implicitly[RunF[M]]
-  //
-  //  import implicitRunF._
-
   private def isRaffleCreated(currentHistory: RaffleHistory): Boolean =
     currentHistory.nonEmpty
 
@@ -136,12 +132,5 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       failure(new IllegalStateException(s"unknown $command"))
   }
 
-  //  override def runAll: RaffleCommands => RaffleHistory =
-  //    commands => {
-  //      val historyDescription: M[History[Unit]] = handleAll(commands)
-  //      val input: Input = (empty, ()).asInstanceOf[Input]
-  //      val (history, _) = run[History[Unit], (History[RaffleEvent], History[Unit])](historyDescription)(input)
-  //      history
-  //    }
 
 }
