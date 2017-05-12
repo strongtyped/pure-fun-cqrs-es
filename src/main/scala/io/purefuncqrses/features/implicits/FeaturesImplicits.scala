@@ -201,6 +201,7 @@ object FeaturesImplicits {
     new StateT[S, Future]
 
   // TODO: other combinations
+  //
   implicit def identityIdentityNestedStateF[S, T]:
   SuccessF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with FailureF[λ[`+A` => S => T => Identity[(T, (S, A))]]]

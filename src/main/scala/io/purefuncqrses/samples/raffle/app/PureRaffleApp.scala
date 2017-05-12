@@ -12,10 +12,6 @@ import scala.language.higherKinds
 
 class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : NestedStateF[Option[RaffleState], ?[_]] : RunF] {
 
-  //  private val implicitNestedRunF = implicitly[NestedRunF[M]]
-  //
-  //  import implicitNestedRunF._
-
   private val implicitRunF = implicitly[RunF[M]]
 
   import implicitRunF._

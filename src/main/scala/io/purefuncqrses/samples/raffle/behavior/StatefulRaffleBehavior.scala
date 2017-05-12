@@ -62,19 +62,84 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
   private def participants: Seq[String] =
     optionalRaffleState.get.asInstanceOf[OpenState].participants
 
+  private def createRaffleCondition: Boolean =
+    !isRaffleCreated
+
+  private def addParticipantCondition(name: String): Boolean =
+    isRaffleCreated && !hasParticipantBeenAdded(name)
+
+  private def removeParticipantCondition(name: String): Boolean =
+    isRaffleCreated && hasParticipantBeenAdded(name)
+
+  private def selectWinnerCondition: Boolean =
+    isRaffleCreated && participants.nonEmpty
+
+  private def createRaffleBlock(currentHistory: RaffleHistory): M[Unit] = {
+    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    val raffleId = RaffleId.generate()
+    val newOptionalRaffleState = Some(OpenState(raffleId, List()))
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
+    optionalRaffleState = newOptionalRaffleState
+    setState {
+      val newHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
+      println(s"new history = $newHistory")
+      newHistory
+    }
+  }
+
+  private def addParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
+    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    val newOptionalRaffleState = optionalRaffleState map { raffleState =>
+      val openRaffleState = raffleState.asInstanceOf[OpenState]
+      openRaffleState.copy(participants = openRaffleState.participants.add(name))
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
+    optionalRaffleState = newOptionalRaffleState
+    setState {
+      val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId)
+      println(s"new history = $newHistory")
+      newHistory
+    }
+  }
+
+  private def removeParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
+    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    val newOptionalRaffleState = optionalRaffleState map { raffleState =>
+      val openRaffleState = raffleState.asInstanceOf[OpenState]
+      openRaffleState.copy(participants = openRaffleState.participants.remove(name))
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
+    optionalRaffleState = newOptionalRaffleState
+    setState {
+      val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId)
+      println(s"new history = $newHistory")
+      newHistory
+    }
+  }
+
+  private def selectWinnerBlock(currentHistory: RaffleHistory): M[Unit] = {
+    val currentParticipants = participants
+    val winner = currentParticipants(Random.nextInt(currentParticipants.size))
+    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    val newOptionalRaffleState = optionalRaffleState map { raffleState =>
+      ClosedState(raffleState.raffleId, winner)
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
+    optionalRaffleState = newOptionalRaffleState
+    setState {
+      val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId)
+      println(s"new history = $newHistory")
+      newHistory
+    }
+  }
+
   override protected def handle: RaffleCommand => M[Unit] = {
     case command@CreateRaffleCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (!isRaffleCreated) {
-          val raffleId = RaffleId.generate()
-          optionalRaffleState = Some(OpenState(raffleId, List()))
-          setState {
-            val newHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
-            println(s"new history = $newHistory")
-            newHistory
-          }
+        if (createRaffleCondition) {
+          createRaffleBlock(currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
@@ -83,17 +148,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (isRaffleCreated && !hasParticipantBeenAdded(name)) {
-          optionalRaffleState =
-            optionalRaffleState map { raffleState =>
-              val openRaffleState = raffleState.asInstanceOf[OpenState]
-              openRaffleState.copy(participants = openRaffleState.participants.add(name))
-            }
-          setState {
-            val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId)
-            println(s"new history = $newHistory")
-            newHistory
-          }
+        if (addParticipantCondition(name)) {
+          addParticipantBlock(name, currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
@@ -102,17 +158,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (isRaffleCreated && hasParticipantBeenAdded(name)) {
-          optionalRaffleState =
-            optionalRaffleState map { raffleState =>
-              val openRaffleState = raffleState.asInstanceOf[OpenState]
-              openRaffleState.copy(participants = openRaffleState.participants.remove(name))
-            }
-          setState {
-            val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId)
-            println(s"new history = $newHistory")
-            newHistory
-          }
+        if (removeParticipantCondition(name)) {
+          removeParticipantBlock(name, currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
@@ -121,21 +168,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (isRaffleCreated) {
-          val currentParticipants = participants
-          if (currentParticipants.nonEmpty) {
-            val winner = currentParticipants(Random.nextInt(currentParticipants.size))
-            optionalRaffleState = optionalRaffleState map { raffleState =>
-              ClosedState(raffleState.raffleId, winner)
-            }
-            setState {
-              val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId)
-              println(s"new history = $newHistory")
-              newHistory
-            }
-          } else {
-            failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
-          }
+        if (selectWinnerCondition) {
+          selectWinnerBlock(currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }

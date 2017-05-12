@@ -65,17 +65,56 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
     }
   }
 
+  private def createRaffleCondition(currentHistory: RaffleHistory): Boolean =
+    !isRaffleCreated(currentHistory)
+
+  private def addParticipantCondition(name: String, currentHistory: RaffleHistory): Boolean =
+    isRaffleCreated(currentHistory) && !hasParticipantBeenAdded(name, currentHistory)
+
+  private def removeParticipantCondition(name: String, currentHistory: RaffleHistory): Boolean =
+    isRaffleCreated(currentHistory) && hasParticipantBeenAdded(name, currentHistory)
+
+  private def selectWinnerCondition(currentHistory: RaffleHistory): Boolean =
+    isRaffleCreated(currentHistory) && participants(currentHistory).nonEmpty
+
+  private def createRaffleBlock(currentHistory: RaffleHistory): M[Unit] =
+    setState {
+      val newHistory = currentHistory :+ RaffleCreatedEvent(RaffleId.generate())
+      println(s"new history = $newHistory")
+      newHistory
+    }
+
+  private def addParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] =
+    setState {
+      val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId(currentHistory))
+      println(s"new history = $newHistory")
+      newHistory
+    }
+
+  private def removeParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] =
+    setState {
+      val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId(currentHistory))
+      println(s"new history = $newHistory")
+      newHistory
+    }
+
+  private def selectWinnerBlock(currentHistory: RaffleHistory): M[Unit] = {
+    val currentParticipants = participants(currentHistory)
+    val winner = currentParticipants(Random.nextInt(currentParticipants.size))
+    setState {
+      val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(currentHistory))
+      println(s"new history = $newHistory")
+      newHistory
+    }
+  }
+
   override protected def handle: RaffleCommand => M[Unit] = {
     case command@CreateRaffleCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (!isRaffleCreated(currentHistory)) {
-          setState {
-            val newHistory = currentHistory :+ RaffleCreatedEvent(RaffleId.generate())
-            println(s"new history = $newHistory")
-            newHistory
-          }
+        if (createRaffleCondition(currentHistory)) {
+          createRaffleBlock(currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
@@ -84,12 +123,8 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (isRaffleCreated(currentHistory) && !hasParticipantBeenAdded(name, currentHistory)) {
-          setState {
-            val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId(currentHistory))
-            println(s"new history = $newHistory")
-            newHistory
-          }
+        if (addParticipantCondition(name, currentHistory)) {
+          addParticipantBlock(name, currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
@@ -98,12 +133,8 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (isRaffleCreated(currentHistory) && hasParticipantBeenAdded(name, currentHistory)) {
-          setState {
-            val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId(currentHistory))
-            println(s"new history = $newHistory")
-            newHistory
-          }
+        if (removeParticipantCondition(name, currentHistory)) {
+          removeParticipantBlock(name, currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
@@ -112,17 +143,8 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (isRaffleCreated(currentHistory)) {
-          val currentParticipants = participants(currentHistory)
-          if (currentParticipants.nonEmpty) {
-            setState {
-              val newHistory = currentHistory :+ WinnerSelectedEvent(currentParticipants(Random.nextInt(currentParticipants.size)), OffsetDateTime.now, getRaffleId(currentHistory))
-              println(s"new history = $newHistory")
-              newHistory
-            }
-          } else {
-            failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
-          }
+        if (selectWinnerCondition(currentHistory)) {
+          selectWinnerBlock(currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }

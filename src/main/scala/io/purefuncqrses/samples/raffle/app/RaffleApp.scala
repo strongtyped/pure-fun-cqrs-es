@@ -16,7 +16,7 @@ class RaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : Run
   import implicitRunF._
 
   val raffleBehavior: StatelessRaffleBehavior[M] = new StatelessRaffleBehavior[M]
-  // val raffleBehavior: StatefulRaffleBehavior[M] = new StatefulRaffleBehavior[M]
+  //  val raffleBehavior: StatefulRaffleBehavior[M] = new StatefulRaffleBehavior[M]
 
   val raffleCommands: RaffleCommands =
     all(
