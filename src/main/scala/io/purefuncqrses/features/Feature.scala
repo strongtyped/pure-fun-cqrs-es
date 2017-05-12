@@ -41,6 +41,9 @@ trait SuccessF[M[+ _]] {
       }
     }
 
+  def doAll[A](f_a2mu: A => M[Unit]): immutable.Seq[A] => M[Unit] =
+    as => map(traverse(f_a2mu)(as))(_ => ())
+
   def sequence[A]: immutable.Seq[M[A]] => M[immutable.Seq[A]] =
     traverse[M[A], A](identity)
 

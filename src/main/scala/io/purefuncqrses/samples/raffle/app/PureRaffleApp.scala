@@ -35,9 +35,9 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] :
 
   def runAll: RaffleCommands => RaffleHistory =
     (commands: RaffleCommands) => {
-      val historyDescription: M[History[Unit]] = raffleBehavior.handleAll(commands)
+      val historyComputation: M[Unit] = raffleBehavior.handleAll(commands)
       val input: Input = (empty, (None, ())).asInstanceOf[Input]
-      val (_, (history, _)) = run[History[Unit], (Option[RaffleState], (History[RaffleEvent], History[Unit]))](historyDescription)(input)
+      val (_, (history, _)) = run[Unit, (Option[RaffleState], (History[RaffleEvent], Unit))](historyComputation)(input)
       history
     }
 

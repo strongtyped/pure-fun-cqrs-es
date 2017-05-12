@@ -28,33 +28,13 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : StateF[History[E
 
   import implicitFailureF._
 
-  //  private val implicitRunF = implicitly[RunF[M]]
-  //
-  //  import implicitRunF._
-
   private val implicitStateF = implicitly[StateF[History[E], M]]
 
   import implicitStateF._
 
   protected def handle: C => M[Unit]
 
-  def handleAll: All[C] => M[History[Unit]] =
-    traverse[C, Unit](handle)
-
-  //  def runAll: All[C] => History[E] =
-  //    commands => {
-  //      val historyDescription: M[History[Unit]] = handleAll(commands)
-  //      val input: Input = (empty, ()).asInstanceOf[Input]
-  //      val (history, _) = run[History[Unit], (History[E], History[Unit])](historyDescription)(input)
-  //      history
-  //    }
-
-  //  def runAllNested: All[C] => History[E] =
-  //    commands => {
-  //      val historyDescription: M[History[Unit]] = handleAll(commands)
-  //      val input: Input = (None, (empty, ())).asInstanceOf[Input]
-  //      val (history, _) = run[History[Unit], (History[E], History[Unit])](historyDescription)(input)
-  //      history
-  //    }
+  def handleAll: All[C] => M[Unit] =
+    doAll[C](handle)
 
 }
