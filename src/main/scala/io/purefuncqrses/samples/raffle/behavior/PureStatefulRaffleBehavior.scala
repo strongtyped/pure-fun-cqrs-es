@@ -57,10 +57,12 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
     val raffleId = RaffleId.generate()
     val newOptionalState = Some(OpenState(raffleId, List()))
     println(s"\nnew optional raffle state = $newOptionalState")
-    setState2(newOptionalState) flatMap { _ =>
+    val newHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
+    println(s"\nnew history = $newHistory")
+    setState2 {
+      newOptionalState
+    } flatSeq {
       setState1 {
-        val newHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
-        println(s"\nnew history = $newHistory")
         newHistory
       }
     }
@@ -73,11 +75,13 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
       currentRaffleState.copy(participants = currentRaffleState.participants.add(name))
     }
     println(s"\nnew optional raffle state = $newOptionalState")
-    setState2(newOptionalState) flatMap { _ =>
+    val tmpHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
+    val newHistory = tmpHistory :+ ParticipantAddedEvent(name, getRaffleId(currentOptionalRaffleState))
+    println(s"\nnew history = $newHistory")
+    setState2 {
+      newOptionalState
+    } flatSeq {
       setState1 {
-        val tmpHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
-        val newHistory = tmpHistory :+ ParticipantAddedEvent(name, getRaffleId(currentOptionalRaffleState))
-        println(s"\nnew history = $newHistory")
         newHistory
       }
     }
@@ -89,10 +93,12 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
       openState.copy(participants = openState.participants.add(name))
     }
     println(s"\nnew optional raffle state = $newOptionalState")
-    setState2(newOptionalState) flatMap { _ =>
+    val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId(currentOptionalRaffleState))
+    println(s"\nnew history = $newHistory")
+    setState2 {
+      newOptionalState
+    } flatSeq {
       setState1 {
-        val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId(currentOptionalRaffleState))
-        println(s"\nnew history = $newHistory")
         newHistory
       }
     }
@@ -104,10 +110,12 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
       openState.copy(participants = openState.participants.remove(name))
     }
     println(s"\nnew optional raffle state = $newOptionalState")
-    setState2(newOptionalState) flatMap { _ =>
+    val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId(currentOptionalRaffleState))
+    println(s"\nnew history = $newHistory")
+    setState2 {
+      newOptionalState
+    } flatSeq {
       setState1 {
-        val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId(currentOptionalRaffleState))
-        println(s"\nnew history = $newHistory")
         newHistory
       }
     }
@@ -120,10 +128,12 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
       ClosedState(currentRaffleState.raffleId, winner)
     }
     println(s"\nnew optional raffle state = $newOptionalState")
-    setState2(newOptionalState) flatMap { _ =>
+    val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(currentOptionalRaffleState))
+    println(s"\nnew history = $newHistory")
+    setState2 {
+      newOptionalState
+    } flatSeq {
       setState1 {
-        val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(currentOptionalRaffleState))
-        println(s"\nnew history = $newHistory")
         newHistory
       }
     }

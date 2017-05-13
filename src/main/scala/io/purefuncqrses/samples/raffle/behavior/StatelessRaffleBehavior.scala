@@ -64,41 +64,45 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
   private def selectWinnerCondition(currentHistory: RaffleHistory): Boolean =
     isRaffleCreated(currentHistory) && participants(currentHistory).nonEmpty
 
-  private def createRaffleBlock(currentHistory: RaffleHistory): M[Unit] =
+  private def createRaffleBlock(currentHistory: RaffleHistory): M[Unit] = {
+    val newHistory = currentHistory :+ RaffleCreatedEvent(RaffleId.generate())
+    println(s"new history = $newHistory")
     setState1 {
-      val newHistory = currentHistory :+ RaffleCreatedEvent(RaffleId.generate())
-      println(s"new history = $newHistory")
       newHistory
     }
+  }
 
-  private def createRaffleAddingParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] =
+  private def createRaffleAddingParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
+    val tmpHistory = currentHistory :+ RaffleCreatedEvent(RaffleId.generate())
+    val newHistory = tmpHistory :+ ParticipantAddedEvent(name, getRaffleId(tmpHistory))
+    println(s"new history = $newHistory")
     setState1 {
-      val tmpHistory = currentHistory :+ RaffleCreatedEvent(RaffleId.generate())
-      val newHistory = tmpHistory :+ ParticipantAddedEvent(name, getRaffleId(tmpHistory))
-      println(s"new history = $newHistory")
       newHistory
     }
+  }
 
-  private def addParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] =
+  private def addParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
+    val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId(currentHistory))
+    println(s"new history = $newHistory")
     setState1 {
-      val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId(currentHistory))
-      println(s"new history = $newHistory")
       newHistory
     }
+  }
 
-  private def removeParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] =
+  private def removeParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
+    val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId(currentHistory))
+    println(s"new history = $newHistory")
     setState1 {
-      val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId(currentHistory))
-      println(s"new history = $newHistory")
       newHistory
     }
+  }
 
   private def selectWinnerBlock(currentHistory: RaffleHistory): M[Unit] = {
     val currentParticipants = participants(currentHistory)
     val winner = currentParticipants(Random.nextInt(currentParticipants.size))
+    val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(currentHistory))
+    println(s"new history = $newHistory")
     setState1 {
-      val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(currentHistory))
-      println(s"new history = $newHistory")
       newHistory
     }
   }
