@@ -33,7 +33,7 @@ abstract class AbstractRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHis
   protected type Output
 
   protected def output(): Output = {
-    val raffle: M[Unit] = raffleBehavior.handle(raffleCommands)
+    val raffle: M[Unit] = raffleBehavior.handler(raffleCommands)
     run(raffle)(input)
   }
 

@@ -36,13 +36,13 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : StateF[History[E
 
   protected val partialHandlers: PartialHandlers[C, M]
 
-  private def handleUnknown: PartialHandler[C, M] = {
+  private def unknownHandler: PartialHandler[C, M] = {
     case c =>
       println(s"\ncase $c =>")
       failure(new IllegalStateException(s"unknown $c"))
   }
 
-  def handle: Handler[C, M] =
-    doForAll[C](partialHandlers.foldRight(handleUnknown)(_ orElse _))
+  def handler: Handler[C, M] =
+    doForAll[C](partialHandlers.foldRight(unknownHandler)(_ orElse _))
 
 }

@@ -103,7 +103,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
     }
   }
 
-  override protected lazy val handleCreateRaffleCommand: PartialRaffleCommandHandler[M] = {
+  override protected lazy val createRaffleCommandHandler: PartialRaffleCommandHandler[M] = {
     case command@CreateRaffleCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
@@ -116,7 +116,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       }
   }
 
-  override protected lazy val handleCreateRaffleAddingParticipantCommand: PartialRaffleCommandHandler[M] = {
+  override protected lazy val createRaffleAddingParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleAddingParticipantCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
@@ -129,7 +129,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       }
   }
 
-  override protected lazy val handleAddParticipantCommand: PartialRaffleCommandHandler[M] = {
+  override protected lazy val addParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: AddParticipantCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
@@ -142,7 +142,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       }
   }
 
-  override protected lazy val handleRemoveParticipantCommand: PartialRaffleCommandHandler[M] = {
+  override protected lazy val removeParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: RemoveParticipantCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
@@ -155,7 +155,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistor
       }
   }
 
-  override protected lazy val handleSelectWinnerCommand: PartialRaffleCommandHandler[M] = {
+  override protected lazy val selectWinnerCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: SelectWinnerCommand.type =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>

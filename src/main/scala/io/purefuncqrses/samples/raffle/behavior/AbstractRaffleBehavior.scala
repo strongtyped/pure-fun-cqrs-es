@@ -24,23 +24,23 @@ import AbstractRaffleBehavior._
 abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]]]
   extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
 
-  protected def handleCreateRaffleCommand: PartialRaffleCommandHandler[M]
+  protected def createRaffleCommandHandler: PartialRaffleCommandHandler[M]
 
-  protected def handleCreateRaffleAddingParticipantCommand: PartialRaffleCommandHandler[M]
+  protected def createRaffleAddingParticipantCommandHandler: PartialRaffleCommandHandler[M]
 
-  protected def handleAddParticipantCommand: PartialRaffleCommandHandler[M]
+  protected def addParticipantCommandHandler: PartialRaffleCommandHandler[M]
 
-  protected def handleRemoveParticipantCommand: PartialRaffleCommandHandler[M]
+  protected def removeParticipantCommandHandler: PartialRaffleCommandHandler[M]
 
-  protected def handleSelectWinnerCommand: PartialRaffleCommandHandler[M]
+  protected def selectWinnerCommandHandler: PartialRaffleCommandHandler[M]
 
   override protected val partialHandlers: PartialRaffleCommandHandlers[M] =
     List(
-      handleCreateRaffleCommand,
-      handleCreateRaffleAddingParticipantCommand,
-      handleAddParticipantCommand,
-      handleRemoveParticipantCommand,
-      handleSelectWinnerCommand
+      createRaffleCommandHandler,
+      createRaffleAddingParticipantCommandHandler,
+      addParticipantCommandHandler,
+      removeParticipantCommandHandler,
+      selectWinnerCommandHandler
     )
 
 }
