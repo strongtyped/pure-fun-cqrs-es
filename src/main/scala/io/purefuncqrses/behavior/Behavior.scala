@@ -8,8 +8,6 @@ import scala.language.higherKinds
 
 object Behavior {
 
-  type All[+C] = immutable.Seq[C]
-
   def seq[C](cs: C*) = immutable.Seq[C](cs: _*)
 
   type History[+E] = immutable.Seq[E]
@@ -18,7 +16,9 @@ object Behavior {
 
   type PartialHandler[C, M[+ _]] = PartialFunction[C, M[Unit]]
 
-  type Handler[C, M[+ _]] = Function[All[C], M[Unit]]
+  type PartialHandlers[C, M[+ _]] = List[PartialHandler[C, M]]
+
+  type Handler[C, M[+ _]] = Function[immutable.Seq[C], M[Unit]]
 
 }
 
@@ -34,7 +34,7 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : StateF[History[E
 
   import implicitFailureF._
 
-  protected val commandHandlers: List[PartialHandler[C, M]]
+  protected val partialHandlers: PartialHandlers[C, M]
 
   private def handleUnknown: PartialHandler[C, M] = {
     case c =>
@@ -43,6 +43,6 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : StateF[History[E
   }
 
   def handle: Handler[C, M] =
-    doForAll[C](commandHandlers.foldRight(handleUnknown)(_ orElse _))
+    doForAll[C](partialHandlers.foldRight(handleUnknown)(_ orElse _))
 
 }
