@@ -59,10 +59,10 @@ trait FailureF[M[+ _]] {
 
 }
 
-trait StateF[S, M[+ _]] {
+trait State1F[S1, M[+ _]] {
 
-  val setState: S => M[Unit]
-  val getState: Unit => M[S]
+  val setState1: S1 => M[Unit]
+  val getState1: Unit => M[S1]
 
 }
 
@@ -72,12 +72,21 @@ trait NestF[S, M[+ _]] {
 
 }
 
-trait NestedStateF[T, M[+ _]] {
+trait State2F[S2, M[+ _]] {
 
-  val setNestedState: T => M[Unit]
-  val getNestedState: Unit => M[T]
+  val setState2: S2 => M[Unit]
+  val getState2: Unit => M[S2]
 
 }
+
+trait State3F[S3, M[+ _]] {
+
+  val setState3: S3 => M[Unit]
+  val getState3: Unit => M[S3]
+
+}
+
+// and so on ...
 
 trait RunF[M[+ _]] {
 

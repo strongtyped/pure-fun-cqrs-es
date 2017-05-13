@@ -1,7 +1,7 @@
 package io.purefuncqrses.features.implicits
 
 import io.purefuncqrses.Identity
-import io.purefuncqrses.features.transform.{NestedStateT, StateT}
+import io.purefuncqrses.features.transform.{State2T, State1T}
 import io.purefuncqrses.features._
 
 import scala.concurrent.duration.Duration
@@ -193,22 +193,22 @@ object FeaturesImplicits {
   SuccessF[λ[`+A` => S => Identity[(S, A)]]]
     with FailureF[λ[`+A` => S => Identity[(S, A)]]]
     with RunF[λ[`+A` => S => Identity[(S, A)]]]
-    with StateF[S, λ[`+A` => S => Identity[(S, A)]]] =
-    new StateT[S, Identity]
+    with State1F[S, λ[`+A` => S => Identity[(S, A)]]] =
+    new State1T[S, Identity]
 
   implicit def tryStateF[S]:
   SuccessF[λ[`+A` => S => Try[(S, A)]]]
     with FailureF[λ[`+A` => S => Try[(S, A)]]]
     with RunF[λ[`+A` => S => Try[(S, A)]]]
-    with StateF[S, λ[`+A` => S => Try[(S, A)]]] =
-    new StateT[S, Try]
+    with State1F[S, λ[`+A` => S => Try[(S, A)]]] =
+    new State1T[S, Try]
 
   implicit def futureStateF[S]:
   SuccessF[λ[`+A` => S => Future[(S, A)]]]
     with FailureF[λ[`+A` => S => Future[(S, A)]]]
     with RunF[λ[`+A` => S => Future[(S, A)]]]
-    with StateF[S, λ[`+A` => S => Future[(S, A)]]] =
-    new StateT[S, Future]
+    with State1F[S, λ[`+A` => S => Future[(S, A)]]] =
+    new State1T[S, Future]
 
   // TODO: other combinations
   //
@@ -216,8 +216,8 @@ object FeaturesImplicits {
   SuccessF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with FailureF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with RunF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
-    with StateF[S, λ[`+A` => S => T => Identity[(T, (S, A))]]]
-    with NestedStateF[T, λ[`+A` => S => T => Identity[(T, (S, A))]]] =
-    new NestedStateT[S, T, λ[`+A` => T => Identity[(T, A)]]]
+    with State1F[S, λ[`+A` => S => T => Identity[(T, (S, A))]]]
+    with State2F[T, λ[`+A` => S => T => Identity[(T, (S, A))]]] =
+    new State2T[S, T, λ[`+A` => T => Identity[(T, A)]]]
 
 }
