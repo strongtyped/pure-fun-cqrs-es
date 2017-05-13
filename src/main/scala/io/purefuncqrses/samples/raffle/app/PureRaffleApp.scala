@@ -8,7 +8,7 @@ import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
 import scala.language.higherKinds
 
- class PureRaffleApp[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]] : State2F[Option[RaffleState], ?[_]] : RunF]
+class PureRaffleApp[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]] : State2F[Option[RaffleState], ?[_]] : RunF]
   extends AbstractRaffleApp[M] {
 
   import implicitRunF._

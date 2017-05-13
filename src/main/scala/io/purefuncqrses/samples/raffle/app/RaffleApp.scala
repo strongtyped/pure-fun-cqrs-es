@@ -13,7 +13,7 @@ class RaffleApp[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]] : Ru
 
   import implicitRunF._
 
-//  override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatelessRaffleBehavior[M]
+  //  override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatelessRaffleBehavior[M]
 
   override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatefulRaffleBehavior[M]
 

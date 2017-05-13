@@ -218,6 +218,6 @@ object FeaturesImplicits {
     with RunF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with State1F[S, λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with State2F[T, λ[`+A` => S => T => Identity[(T, (S, A))]]] =
-    new State2T[S, T, λ[`+A` => T => Identity[(T, A)]]]
+  new State2T[S, T, λ[`+A` => T => Identity[(T, A)]]]
 
 }
