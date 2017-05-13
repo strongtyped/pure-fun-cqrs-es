@@ -22,19 +22,19 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
 
   import implicitStateF._
 
-  var optionalRaffleState: Option[RaffleState] = None
+  var currentOptionalRaffleState: Option[RaffleState] = None
 
   private def isRaffleCreated: Boolean =
-    optionalRaffleState.isDefined
+    currentOptionalRaffleState.isDefined
 
   private def getRaffleId: RaffleId =
-    optionalRaffleState.get.raffleId
+    currentOptionalRaffleState.get.raffleId
 
   private def hasParticipantBeenAdded(name: String): Boolean =
-    optionalRaffleState.get.asInstanceOf[OpenState].participants.contains(name)
+    currentOptionalRaffleState.get.asInstanceOf[OpenState].participants.contains(name)
 
   private def participants: Seq[String] =
-    optionalRaffleState.get.asInstanceOf[OpenState].participants
+    currentOptionalRaffleState.get.asInstanceOf[OpenState].participants
 
   private def createRaffleCondition: Boolean =
     !isRaffleCreated
@@ -52,11 +52,11 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
     isRaffleCreated && participants.nonEmpty
 
   private def createRaffleBlock(currentHistory: RaffleHistory): M[Unit] = {
-    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    println(s"\ncurrent optional raffle state = $currentOptionalRaffleState")
     val raffleId = RaffleId.generate()
     val newOptionalRaffleState = Some(OpenState(raffleId, List()))
     println(s"\nnew optional raffle state = $newOptionalRaffleState")
-    optionalRaffleState = newOptionalRaffleState
+    currentOptionalRaffleState = newOptionalRaffleState
     setState {
       val newHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
       println(s"new history = $newHistory")
@@ -65,14 +65,14 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
   }
 
   private def createRaffleAddingParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
-    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    println(s"\ncurrent optional raffle state = $currentOptionalRaffleState")
     val raffleId = RaffleId.generate()
     val tmpOptionalRaffleState = Some(OpenState(raffleId, List()))
-    val newOptionalRaffleState = tmpOptionalRaffleState map { raffleState =>
-      raffleState.copy(participants = raffleState.participants.add(name))
+    val newOptionalRaffleState = tmpOptionalRaffleState map { currentRaffleState =>
+      currentRaffleState.copy(participants = currentRaffleState.participants.add(name))
     }
     println(s"\nnew optional raffle state = $newOptionalRaffleState")
-    optionalRaffleState = newOptionalRaffleState
+    currentOptionalRaffleState = newOptionalRaffleState
     setState {
       val tmpHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
       val newHistory = tmpHistory :+ ParticipantAddedEvent(name, getRaffleId)
@@ -82,13 +82,13 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
   }
 
   private def addParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
-    println(s"\ncurrent optional raffle state = $optionalRaffleState")
-    val newOptionalRaffleState = optionalRaffleState map { raffleState =>
-      val openRaffleState = raffleState.asInstanceOf[OpenState]
+    println(s"\ncurrent optional raffle state = $currentOptionalRaffleState")
+    val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
+      val openRaffleState = currentRaffleState.asInstanceOf[OpenState]
       openRaffleState.copy(participants = openRaffleState.participants.add(name))
     }
     println(s"\nnew optional raffle state = $newOptionalRaffleState")
-    optionalRaffleState = newOptionalRaffleState
+    currentOptionalRaffleState = newOptionalRaffleState
     setState {
       val newHistory = currentHistory :+ ParticipantAddedEvent(name, getRaffleId)
       println(s"new history = $newHistory")
@@ -97,13 +97,13 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
   }
 
   private def removeParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
-    println(s"\ncurrent optional raffle state = $optionalRaffleState")
-    val newOptionalRaffleState = optionalRaffleState map { raffleState =>
-      val openRaffleState = raffleState.asInstanceOf[OpenState]
+    println(s"\ncurrent optional raffle state = $currentOptionalRaffleState")
+    val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
+      val openRaffleState = currentRaffleState.asInstanceOf[OpenState]
       openRaffleState.copy(participants = openRaffleState.participants.remove(name))
     }
     println(s"\nnew optional raffle state = $newOptionalRaffleState")
-    optionalRaffleState = newOptionalRaffleState
+    currentOptionalRaffleState = newOptionalRaffleState
     setState {
       val newHistory = currentHistory :+ ParticipantRemovedEvent(name, getRaffleId)
       println(s"new history = $newHistory")
@@ -114,12 +114,12 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
   private def selectWinnerBlock(currentHistory: RaffleHistory): M[Unit] = {
     val currentParticipants = participants
     val winner = currentParticipants(Random.nextInt(currentParticipants.size))
-    println(s"\ncurrent optional raffle state = $optionalRaffleState")
-    val newOptionalRaffleState = optionalRaffleState map { raffleState =>
-      ClosedState(raffleState.raffleId, winner)
+    println(s"\ncurrent optional raffle state = $currentOptionalRaffleState")
+    val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
+      ClosedState(currentRaffleState.raffleId, winner)
     }
     println(s"\nnew optional raffle state = $newOptionalRaffleState")
-    optionalRaffleState = newOptionalRaffleState
+    currentOptionalRaffleState = newOptionalRaffleState
     setState {
       val newHistory = currentHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId)
       println(s"new history = $newHistory")
