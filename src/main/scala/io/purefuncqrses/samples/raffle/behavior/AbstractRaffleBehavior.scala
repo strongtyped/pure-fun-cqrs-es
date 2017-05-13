@@ -1,7 +1,7 @@
 package io.purefuncqrses.samples.raffle.behavior
 
 import io.purefuncqrses.behavior.Behavior
-import io.purefuncqrses.behavior.Behavior.{All, History, PartialHandler}
+import io.purefuncqrses.behavior.Behavior.{All, Handler, History, PartialHandler}
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands.RaffleCommand
@@ -14,6 +14,7 @@ object AbstractRaffleBehavior {
   type RaffleCommands = All[RaffleCommand]
   type RaffleHistory = History[RaffleEvent]
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
+  type RaffleCommandHandler[M[+ _]] = Handler[RaffleCommand, M]
 }
 
 import AbstractRaffleBehavior.PartialRaffleCommandHandler

@@ -2,7 +2,7 @@ package io.purefuncqrses.samples.raffle.app
 
 import io.purefuncqrses.behavior.Behavior.{All, History, empty, seq}
 import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleCommands, RaffleHistory}
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleCommandHandler, RaffleCommands, RaffleHistory}
 import io.purefuncqrses.samples.raffle.behavior.{StatefulRaffleBehavior, StatelessRaffleBehavior}
 import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.samples.raffle.events.RaffleEvent
@@ -33,11 +33,13 @@ class RaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : Run
       SelectWinnerCommand
     )
 
+  val raffle: M[Unit] = handle(raffleCommands)
+
   type Output = (History[RaffleEvent], Unit)
 
   val raffleHistory: RaffleHistory = {
     val input: Input = (empty, ()).asInstanceOf[Input]
-    val output: Output = run(handle(raffleCommands))(input)
+    val output: Output = run(raffle)(input)
     output._1
   }
 

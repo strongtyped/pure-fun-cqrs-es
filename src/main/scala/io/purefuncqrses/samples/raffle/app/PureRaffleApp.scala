@@ -31,11 +31,13 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] :
       SelectWinnerCommand
     )
 
+  val raffle: M[Unit] = handle(raffleCommands)
+
   type Output = (Option[RaffleState], (History[RaffleEvent], Unit))
 
   val raffleHistory: RaffleHistory = {
     val input: Input = (empty, (None, ())).asInstanceOf[Input]
-    val output: Output = run(handle(raffleCommands))(input)
+    val output: Output = run(raffle)(input)
     output._2._1
   }
 
