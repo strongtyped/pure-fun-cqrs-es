@@ -57,6 +57,16 @@ object FeaturesImplicits {
       with IdentityFailureF
       with IdentityRunF
 
+  implicit def identityNestF[S, T] = new NestF[S, λ[`+A` => T => Identity[(T, A)]]] {
+    def nest[Z, Y](f_z2iy: Z => T => Identity[(T, Y)]): Z => S => T => Identity[(T, (S, Y))] =
+      z =>
+        s =>
+          t => {
+            val (tt, y) = f_z2iy(z)(t).value
+            Identity((tt, (s, y)))
+          }
+  }
+
   class OptionSuccessF extends SuccessF[Option] {
 
     override def success[A](a: A): Option[A] =
@@ -207,8 +217,7 @@ object FeaturesImplicits {
     with FailureF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with RunF[λ[`+A` => S => T => Identity[(T, (S, A))]]]
     with StateF[S, λ[`+A` => S => T => Identity[(T, (S, A))]]]
-    with NestedStateF[T, λ[`+A` => S => T => Identity[(T, (S, A))]]] = {
+    with NestedStateF[T, λ[`+A` => S => T => Identity[(T, (S, A))]]] =
     new NestedStateT[S, T, λ[`+A` => T => Identity[(T, A)]]]
-  }
 
 }

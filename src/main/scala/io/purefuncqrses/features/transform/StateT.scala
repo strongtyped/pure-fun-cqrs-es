@@ -59,21 +59,14 @@ class StateT[S, M[+ _] : SuccessF : FailureF : RunF]
 
 }
 
-class NestedStateT[S, T, M[+ _] : SuccessF : FailureF : StateF[T, ?[_]] : RunF]
+class NestedStateT[S, T, M[+ _] : SuccessF : FailureF : StateF[T, ?[_]] : NestF[S, ?[_]] : RunF]
   extends StateT[S, M]
     with NestedStateF[T, λ[`+A` => S => M[(S, A)]]] {
 
-  val implicitStateF: StateF[T, M] = implicitly[StateF[T, M]]
-
-  def nest[Z, Y](f: Z => M[Y]): Z => S => M[(S, Y)] =
-  z =>
-    s =>
-      implicitSuccessF.map(f(z))((s, _))
-
   override val setNestedState: T => S => M[(S, Unit)] =
-    nest(implicitStateF.setState)
+    implicitly[NestF[S, M]].nest(implicitly[StateF[T, M]].setState)
 
   override val getNestedState: Unit => S => M[(S, T)] =
-    nest(implicitStateF.getState)
+    implicitly[NestF[S, M]].nest(implicitly[StateF[T, M]].getState)
 
 }

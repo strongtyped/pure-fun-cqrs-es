@@ -66,6 +66,12 @@ trait StateF[S, M[+ _]] {
 
 }
 
+trait NestF[S, M[+ _]] {
+
+  def nest[Z, Y](f_z2my: Z => M[Y]): Z => S => M[(S, Y)]
+
+}
+
 trait NestedStateF[T, M[+ _]] {
 
   val setNestedState: T => M[Unit]
