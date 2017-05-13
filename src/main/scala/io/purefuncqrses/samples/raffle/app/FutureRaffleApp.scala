@@ -9,6 +9,6 @@ object FutureRaffleApp extends App {
 
   implicit val futureRaffleHistoryStateF = futureStateF[RaffleHistory]
 
-  new RaffleApp[λ[`+A` => RaffleHistory => Future[(RaffleHistory, A)]]]
+  new RaffleApp[λ[`+A` => RaffleHistory => Future[(RaffleHistory, A)]]].runApp()
 
 }

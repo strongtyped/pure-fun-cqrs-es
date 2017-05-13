@@ -8,6 +8,6 @@ object IdentityRaffleApp extends App {
 
   implicit val identityRaffleHistoryStateF = identityStateF[RaffleHistory]
 
-  new RaffleApp[λ[`+A` => RaffleHistory => Identity[(RaffleHistory, A)]]]
+  new RaffleApp[λ[`+A` => RaffleHistory => Identity[(RaffleHistory, A)]]].runApp()
 
 }

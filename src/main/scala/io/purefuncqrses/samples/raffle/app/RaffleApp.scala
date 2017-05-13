@@ -1,48 +1,27 @@
 package io.purefuncqrses.samples.raffle.app
 
-import io.purefuncqrses.behavior.Behavior.{All, History, empty, seq}
+import io.purefuncqrses.behavior.Behavior.{History, empty}
 import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleCommandHandler, RaffleCommands, RaffleHistory}
-import io.purefuncqrses.samples.raffle.behavior.{StatefulRaffleBehavior, StatelessRaffleBehavior}
-import io.purefuncqrses.samples.raffle.commands._
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleHistory}
+import io.purefuncqrses.samples.raffle.behavior.{AbstractRaffleBehavior, StatefulRaffleBehavior, StatelessRaffleBehavior}
 import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
 import scala.language.higherKinds
 
-class RaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : RunF] {
-
-  private val implicitRunF = implicitly[RunF[M]]
+class RaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : RunF]
+  extends AbstractRaffleApp[M] {
 
   import implicitRunF._
 
-  //    val raffleBehavior: StatelessRaffleBehavior[M] = new StatelessRaffleBehavior[M]
+//  override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatelessRaffleBehavior[M]
 
-  val raffleBehavior: StatefulRaffleBehavior[M] = new StatefulRaffleBehavior[M]
+  override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatefulRaffleBehavior[M]
 
-  import raffleBehavior._
+  override protected val input: Input = (empty, ()).asInstanceOf[Input]
 
-  val raffleCommands: RaffleCommands =
-    seq(
-      CreateRaffleCommand,
-      AddParticipantCommand("John"),
-      //      CreateRaffleAddingParticipantCommand("John"),
-      AddParticipantCommand("Paul"),
-      AddParticipantCommand("George"),
-      AddParticipantCommand("Ringo"),
-      RemoveParticipantCommand("Paul"),
-      SelectWinnerCommand
-    )
+  override protected type Output = (History[RaffleEvent], Unit)
 
-  val raffle: M[Unit] = handle(raffleCommands)
-
-  type Output = (History[RaffleEvent], Unit)
-
-  val raffleHistory: RaffleHistory = {
-    val input: Input = (empty, ()).asInstanceOf[Input]
-    val output: Output = run(raffle)(input)
-    output._1
-  }
-
-  println("\n" + raffleHistory.last)
+  override protected val raffleHistory: RaffleHistory = output()._1
 
 }
+

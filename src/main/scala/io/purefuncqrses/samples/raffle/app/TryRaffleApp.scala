@@ -9,6 +9,6 @@ object TryRaffleApp extends App {
 
   implicit val tryRaffleHistoryStateF = tryStateF[RaffleHistory]
 
-  new RaffleApp[λ[`+A` => RaffleHistory => Try[(RaffleHistory, A)]]]
+  new RaffleApp[λ[`+A` => RaffleHistory => Try[(RaffleHistory, A)]]].runApp()
 
 }
