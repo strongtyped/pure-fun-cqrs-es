@@ -17,6 +17,8 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] :
 
   val raffleBehavior: PureStatefulRaffleBehavior[M] = new PureStatefulRaffleBehavior[M]
 
+  import raffleBehavior._
+
   val raffleCommands: RaffleCommands =
     seq(
       CreateRaffleCommand,
@@ -33,7 +35,7 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] :
 
   val raffleHistory: RaffleHistory = {
     val input: Input = (empty, (None, ())).asInstanceOf[Input]
-    val output: Output = run(raffleBehavior.handle(raffleCommands))(input)
+    val output: Output = run(handle(raffleCommands))(input)
     output._2._1
   }
 
