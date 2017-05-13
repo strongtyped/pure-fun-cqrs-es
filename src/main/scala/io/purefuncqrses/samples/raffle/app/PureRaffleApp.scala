@@ -1,10 +1,9 @@
 package io.purefuncqrses.samples.raffle.app
 
-import io.purefuncqrses.behavior.Behavior.{All, History, all, empty}
+import io.purefuncqrses.behavior.Behavior.{All, History, empty, seq}
 import io.purefuncqrses.features._
-import io.purefuncqrses.samples.raffle.behavior.PureStatefulRaffleBehavior.RaffleCommands
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleCommands, RaffleHistory}
 import io.purefuncqrses.samples.raffle.behavior.{PureStatefulRaffleBehavior, RaffleState}
-import io.purefuncqrses.samples.raffle.behavior.StatelessRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
@@ -19,9 +18,10 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] :
   val raffleBehavior: PureStatefulRaffleBehavior[M] = new PureStatefulRaffleBehavior[M]
 
   val raffleCommands: RaffleCommands =
-    all(
+    seq(
       CreateRaffleCommand,
       AddParticipantCommand("John"),
+      //      CreateRaffleAddingParticipantCommand("John"),
       AddParticipantCommand("Paul"),
       AddParticipantCommand("George"),
       AddParticipantCommand("Ringo"),
@@ -29,15 +29,13 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] :
       SelectWinnerCommand
     )
 
-  def runAll: RaffleCommands => RaffleHistory =
-    (commands: RaffleCommands) => {
-      val historyComputation: M[Unit] = raffleBehavior.handleAll(commands)
-      val input: Input = (empty, (None, ())).asInstanceOf[Input]
-      val (_, (history, _)) = run[Unit, (Option[RaffleState], (History[RaffleEvent], Unit))](historyComputation)(input)
-      history
-    }
+  type Output = (Option[RaffleState], (History[RaffleEvent], Unit))
 
-  val raffleHistory: RaffleHistory = runAll(raffleCommands)
+  val raffleHistory: RaffleHistory = {
+    val input: Input = (empty, (None, ())).asInstanceOf[Input]
+    val output: Output = run(raffleBehavior.handle(raffleCommands))(input)
+    output._2._1
+  }
 
   println("\n" + raffleHistory.last)
 

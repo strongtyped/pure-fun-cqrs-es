@@ -3,50 +3,24 @@ package io.purefuncqrses.samples.raffle.behavior
 import java.time.OffsetDateTime
 
 import io.purefuncqrses.util.Util._
-import io.purefuncqrses.behavior.Behavior
-import io.purefuncqrses.behavior.Behavior.{All, History, empty}
-import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
+import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
-
-import scala.collection.immutable
 import io.purefuncqrses.features.ops.FeatureOps._
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{PartialRaffleCommandHandler, RaffleHistory}
 
 import scala.language.higherKinds
 import scala.util.Random
 
-object StatefulRaffleBehavior {
-  type RaffleCommands = All[RaffleCommand]
-  type RaffleHistory = History[RaffleEvent]
-}
-
-import StatefulRaffleBehavior._
-
 class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]]]
-  extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
-
-  private val implicitSuccessF = implicitly[SuccessF[M]]
-
-  import implicitSuccessF._
-
-  private val implicitFailureF = implicitly[FailureF[M]]
+  extends AbstractRaffleBehavior[M] {
 
   import implicitFailureF._
 
   private val implicitStateF = implicitly[StateF[RaffleHistory, M]]
 
   import implicitStateF._
-
-  sealed trait RaffleState {
-    def raffleId: RaffleId
-  }
-
-  case class OpenState(raffleId: RaffleId, participants: List[String] = List())
-    extends RaffleState
-
-  case class ClosedState(raffleId: RaffleId, winner: String)
-    extends RaffleState
 
   var optionalRaffleState: Option[RaffleState] = None
 
@@ -63,6 +37,9 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
     optionalRaffleState.get.asInstanceOf[OpenState].participants
 
   private def createRaffleCondition: Boolean =
+    !isRaffleCreated
+
+  private def createRaffleAddingParticipantCondition: Boolean =
     !isRaffleCreated
 
   private def addParticipantCondition(name: String): Boolean =
@@ -82,6 +59,23 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
     optionalRaffleState = newOptionalRaffleState
     setState {
       val newHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
+      println(s"new history = $newHistory")
+      newHistory
+    }
+  }
+
+  private def createRaffleAddingParticipantBlock(name: String, currentHistory: RaffleHistory): M[Unit] = {
+    println(s"\ncurrent optional raffle state = $optionalRaffleState")
+    val raffleId = RaffleId.generate()
+    val tmpOptionalRaffleState = Some(OpenState(raffleId, List()))
+    val newOptionalRaffleState = tmpOptionalRaffleState map { raffleState =>
+      raffleState.copy(participants = raffleState.participants.add(name))
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
+    optionalRaffleState = newOptionalRaffleState
+    setState {
+      val tmpHistory = currentHistory :+ RaffleCreatedEvent(raffleId)
+      val newHistory = tmpHistory :+ ParticipantAddedEvent(name, getRaffleId)
       println(s"new history = $newHistory")
       newHistory
     }
@@ -133,8 +127,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
     }
   }
 
-  override protected def handle: RaffleCommand => M[Unit] = {
-    case command@CreateRaffleCommand =>
+  override protected lazy val handleCreateRaffleCommand: PartialRaffleCommandHandler[M] = {
+    case command: CreateRaffleCommand.type =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
@@ -144,27 +138,49 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
       }
-    case command@AddParticipantCommand(name) =>
+  }
+
+  override protected lazy val handleCreateRaffleAddingParticipantCommand: PartialRaffleCommandHandler[M] = {
+    case command: CreateRaffleAddingParticipantCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (addParticipantCondition(name)) {
-          addParticipantBlock(name, currentHistory)
+        if (createRaffleAddingParticipantCondition) {
+          createRaffleAddingParticipantBlock(command.name, currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
       }
-    case command@RemoveParticipantCommand(name) =>
+  }
+
+  override protected lazy val handleAddParticipantCommand: PartialRaffleCommandHandler[M] = {
+    case command: AddParticipantCommand =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
-        if (removeParticipantCondition(name)) {
-          removeParticipantBlock(name, currentHistory)
+        if (addParticipantCondition(command.name)) {
+          addParticipantBlock(command.name, currentHistory)
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
       }
-    case command@SelectWinnerCommand =>
+  }
+
+  override protected lazy val handleRemoveParticipantCommand: PartialRaffleCommandHandler[M] = {
+    case command: RemoveParticipantCommand =>
+      println(s"\ncase $command =>")
+      getState(()) flatMap { currentHistory =>
+        println(s"\ncurrent history = $currentHistory")
+        if (removeParticipantCondition(command.name)) {
+          removeParticipantBlock(command.name, currentHistory)
+        } else {
+          failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
+        }
+      }
+  }
+
+  override protected lazy val handleSelectWinnerCommand: PartialRaffleCommandHandler[M] = {
+    case command: SelectWinnerCommand.type =>
       println(s"\ncase $command =>")
       getState(()) flatMap { currentHistory =>
         println(s"\ncurrent history = $currentHistory")
@@ -174,9 +190,6 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
       }
-    case command =>
-      println(s"\ncase $command =>")
-      failure(new IllegalStateException(s"unknown $command"))
   }
 
 }

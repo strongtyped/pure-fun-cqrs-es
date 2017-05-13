@@ -2,8 +2,8 @@ package io.purefuncqrses.samples.raffle.app
 
 import io.purefuncqrses.Identity
 import io.purefuncqrses.features.implicits.FeaturesImplicits._
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.behavior.RaffleState
-import io.purefuncqrses.samples.raffle.behavior.StatelessRaffleBehavior.RaffleHistory
 
 object PureIdentityIdentityRaffleApp extends App {
 

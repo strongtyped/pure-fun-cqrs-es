@@ -1,9 +1,9 @@
 package io.purefuncqrses.samples.raffle.app
 
-import io.purefuncqrses.behavior.Behavior.{All, History, all, empty}
+import io.purefuncqrses.behavior.Behavior.{All, History, empty, seq}
 import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleCommands, RaffleHistory}
 import io.purefuncqrses.samples.raffle.behavior.{StatefulRaffleBehavior, StatelessRaffleBehavior}
-import io.purefuncqrses.samples.raffle.behavior.StatelessRaffleBehavior.{RaffleCommands, RaffleHistory}
 import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
@@ -15,13 +15,15 @@ class RaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : Run
 
   import implicitRunF._
 
-  val raffleBehavior: StatelessRaffleBehavior[M] = new StatelessRaffleBehavior[M]
-  //  val raffleBehavior: StatefulRaffleBehavior[M] = new StatefulRaffleBehavior[M]
+  //    val raffleBehavior: StatelessRaffleBehavior[M] = new StatelessRaffleBehavior[M]
+
+  val raffleBehavior: StatefulRaffleBehavior[M] = new StatefulRaffleBehavior[M]
 
   val raffleCommands: RaffleCommands =
-    all(
+    seq(
       CreateRaffleCommand,
       AddParticipantCommand("John"),
+      //      CreateRaffleAddingParticipantCommand("John"),
       AddParticipantCommand("Paul"),
       AddParticipantCommand("George"),
       AddParticipantCommand("Ringo"),
@@ -29,15 +31,13 @@ class RaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistory, ?[_]] : Run
       SelectWinnerCommand
     )
 
-  def runAll: RaffleCommands => RaffleHistory =
-    commands => {
-      val historyComputation: M[Unit] = raffleBehavior.handleAll(commands)
-      val input: Input = (empty, ()).asInstanceOf[Input]
-      val (history, _) = run[Unit, (History[RaffleEvent], Unit)](historyComputation)(input)
-      history
-    }
+  type Output = (History[RaffleEvent], Unit)
 
-  val raffleHistory: RaffleHistory = runAll(raffleCommands)
+  val raffleHistory: RaffleHistory = {
+    val input: Input = (empty, ()).asInstanceOf[Input]
+    val output: Output = run(raffleBehavior.handle(raffleCommands))(input)
+    output._1
+  }
 
   println("\n" + raffleHistory.last)
 
