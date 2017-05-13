@@ -59,29 +59,29 @@ class State1T[S1, M[+ _] : SuccessF : FailureF : RunF]
 
 }
 
-class State2T[S2, S1, M[+ _] : SuccessF : FailureF : State1F[S1, ?[_]] : NestF[S2, ?[_]] : RunF]
-  extends State1T[S2, M]
-    with State2F[S1, λ[`+A` => S2 => M[(S2, A)]]] {
+class State2T[S1, S2, M[+ _] : SuccessF : FailureF : State1F[S2, ?[_]] : NestF[S1, ?[_]] : RunF]
+  extends State1T[S1, M]
+    with State2F[S2, λ[`+A` => S1 => M[(S1, A)]]] {
 
-  override val setState2: S1 => S2 => M[(S2, Unit)] =
-    implicitly[NestF[S2, M]].nest(implicitly[State1F[S1, M]].setState1)
+  override val setState2: S2 => S1 => M[(S1, Unit)] =
+    implicitly[NestF[S1, M]].nest(implicitly[State1F[S2, M]].setState1)
 
-  override val getState2: Unit => S2 => M[(S2, S1)] =
-    implicitly[NestF[S2, M]].nest(implicitly[State1F[S1, M]].getState1)
+  override val getState2: Unit => S1 => M[(S1, S2)] =
+    implicitly[NestF[S1, M]].nest(implicitly[State1F[S2, M]].getState1)
 
 }
 
 
-class State3T[S3, S2, S1, M[+ _] : SuccessF : FailureF : State1F[S2, ?[_]] : λ[`M[+ _]` => State2F[S1, λ[`+A` => S2 => M[(S2, A)]]]] : NestF[S3, ?[_]] : λ[`M[+ _]` => NestF[S3, λ[`+A` => S2 => M[(S2, A)]]]] : RunF]
-  extends State2T[S3, S2, M]
-    with State3F[S1, λ[`+A` => S3 => S2 => M[(S2, (S3, A))]]] {
+class State3T[S1, S2, S3, M[+ _] : SuccessF : FailureF : State1F[S2, ?[_]] : λ[`M[+ _]` => State2F[S3, λ[`+A` => S2 => M[(S2, A)]]]] : NestF[S1, ?[_]] : λ[`M[+ _]` => NestF[S1, λ[`+A` => S2 => M[(S2, A)]]]] : RunF]
+  extends State2T[S1, S2, M]
+    with State3F[S3, λ[`+A` => S1 => S2 => M[(S2, (S1, A))]]] {
 
-  override val setState3: S1 => S3 => S2 => M[(S2, (S3, Unit))] =
-    implicitly[NestF[S3, λ[`+A` => S2 => M[(S2, A)]]]].nest(implicitly[State2F[S1, λ[`+A` => S2 => M[(S2, A)]]]].setState2)
+  override val setState3: S3 => S1 => S2 => M[(S2, (S1, Unit))] =
+    implicitly[NestF[S1, λ[`+A` => S2 => M[(S2, A)]]]].nest(implicitly[State2F[S3, λ[`+A` => S2 => M[(S2, A)]]]].setState2)
 
 
-  override val getState3: Unit => S3 => S2 => M[(S2, (S3, S1))] =
-    implicitly[NestF[S3, λ[`+A` => S2 => M[(S2, A)]]]].nest(implicitly[State2F[S1, λ[`+A` => S2 => M[(S2, A)]]]].getState2)
+  override val getState3: Unit => S1 => S2 => M[(S2, (S1, S3))] =
+    implicitly[NestF[S1, λ[`+A` => S2 => M[(S2, A)]]]].nest(implicitly[State2F[S3, λ[`+A` => S2 => M[(S2, A)]]]].getState2)
 
 }
 
