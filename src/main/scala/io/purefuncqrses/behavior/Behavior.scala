@@ -8,17 +8,19 @@ import scala.language.higherKinds
 
 object Behavior {
 
-  def seq[C](cs: C*) = immutable.Seq[C](cs: _*)
-
   type History[+E] = immutable.Seq[E]
-
-  def empty[E] = immutable.Seq[E]()
 
   type PartialHandler[C, M[+ _]] = PartialFunction[C, M[Unit]]
 
   type PartialHandlers[C, M[+ _]] = List[PartialHandler[C, M]]
 
-  type Handler[C, M[+ _]] = Function[immutable.Seq[C], M[Unit]]
+  type Handler[C, M[+ _]] = Function[C, M[Unit]]
+
+  type HandlerForAll[C, M[+ _]] = Function[immutable.Seq[C], M[Unit]]
+
+  def empty[E] = immutable.Seq[E]()
+
+  def seq[C](cs: C*) = immutable.Seq[C](cs: _*)
 
 }
 
@@ -34,15 +36,18 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[History[
 
   import implicitFailureF._
 
+  def handlerForAll: HandlerForAll[C, M] =
+    forAll[C](_)(handler)
+
   protected val partialHandlers: PartialHandlers[C, M]
 
-  private def unknownHandler: PartialHandler[C, M] = {
+  private val unknownHandler: PartialHandler[C, M] = {
     case c =>
       println(s"\ncase $c =>")
       failure(new IllegalStateException(s"unknown $c"))
   }
 
-  def handler: Handler[C, M] =
-    doForAll[C](partialHandlers.foldRight(unknownHandler)(_ orElse _))
+  private def handler: Handler[C, M] =
+    partialHandlers.foldRight(unknownHandler)(_ orElse _)
 
 }

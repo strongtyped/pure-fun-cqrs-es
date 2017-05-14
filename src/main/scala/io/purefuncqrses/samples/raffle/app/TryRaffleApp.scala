@@ -7,7 +7,7 @@ import scala.util.Try
 
 object TryRaffleApp extends App {
 
-  implicit val tryRaffleHistoryStateF = tryStateF[RaffleHistory]
+  implicit val tryRaffleHistoryStateF = tryState2F[RaffleHistory]
 
   new RaffleApp[λ[`+A` => RaffleHistory => Try[(RaffleHistory, A)]]].runApp()
 

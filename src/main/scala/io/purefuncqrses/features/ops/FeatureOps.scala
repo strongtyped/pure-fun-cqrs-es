@@ -36,17 +36,4 @@ object FeatureOps {
 
   }
 
-  implicit class PartialFunctionOps[A, B, M[+ _] : FailureF](pf_a2mb: PartialFunction[A, M[B]]) {
-
-    private val implicitFailureF = implicitly[FailureF[M]]
-
-    import implicitFailureF._
-
-    def completeWithFailure(f_a2t: A => Throwable): Function[A, M[B]] =
-      a =>
-        if (pf_a2mb.isDefinedAt(a)) pf_a2mb(a)
-        else failure(f_a2t(a))
-
-  }
-
 }

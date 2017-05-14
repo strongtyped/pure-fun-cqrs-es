@@ -6,7 +6,7 @@ import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHis
 
 object IdentityRaffleApp extends App {
 
-  implicit val identityRaffleHistoryStateF = identityStateF[RaffleHistory]
+  implicit val identityRaffleHistoryStateF = identityState1F[RaffleHistory]
 
   new RaffleApp[λ[`+A` => RaffleHistory => Identity[(RaffleHistory, A)]]].runApp()
 

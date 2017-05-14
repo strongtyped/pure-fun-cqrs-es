@@ -1,7 +1,8 @@
 package io.purefuncqrses.features
 
-import scala.collection.immutable
+import io.purefuncqrses.State1
 
+import scala.collection.immutable
 import scala.language.higherKinds
 
 trait SuccessF[M[+ _]] {
@@ -41,8 +42,8 @@ trait SuccessF[M[+ _]] {
       }
     }
 
-  def doForAll[A](f_a2mu: A => M[Unit]): immutable.Seq[A] => M[Unit] =
-    as => map(traverse(f_a2mu)(as))(_ => ())
+  def forAll[A](as: immutable.Seq[A]): (A => M[Unit]) => M[Unit] =
+    f_a2mu => map(traverse(f_a2mu)(as))(_ => ())
 
   def sequence[A]: immutable.Seq[M[A]] => M[immutable.Seq[A]] =
     traverse[M[A], A](identity)
@@ -59,16 +60,16 @@ trait FailureF[M[+ _]] {
 
 }
 
+trait NestStateF[S, M[+ _]] {
+
+  def nestState[A, B](f_a2mb: A => M[B]): A => State1[S, M, B]
+
+}
+
 trait State1F[S1, M[+ _]] {
 
   val setState1: S1 => M[Unit]
   val getState1: Unit => M[S1]
-
-}
-
-trait NestF[S, M[+ _]] {
-
-  def nest[Z, Y](f_z2my: Z => M[Y]): Z => S => M[(S, Y)]
 
 }
 
@@ -95,6 +96,3 @@ trait RunF[M[+ _]] {
   def run[A, Output](ma: M[A]): Input => Output
 
 }
-
-
-

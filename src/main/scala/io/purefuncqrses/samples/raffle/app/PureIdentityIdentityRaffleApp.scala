@@ -7,13 +7,13 @@ import io.purefuncqrses.samples.raffle.behavior.RaffleState
 
 object PureIdentityIdentityRaffleApp extends App {
 
-  implicit val identityRaffleHistoryStateF = identityStateF[RaffleHistory]
+  implicit val identityRaffleHistoryStateF = identityState1F[RaffleHistory]
 
-  implicit val identityOptionalRaffleStateStateF = identityStateF[Option[RaffleState]]
+  implicit val identityOptionalRaffleStateStateF = identityState1F[Option[RaffleState]]
 
-  implicit val identityRaffleHistoryOptionalRaffleStateNestF = identityNestF[RaffleHistory, Option[RaffleState]]
+  implicit val identityRaffleHistoryOptionalRaffleStateNestF = identityNestStateF[RaffleHistory, Option[RaffleState]]
 
-  implicit val identityIdentityRaffleHistoryNestedStateF = identityIdentityNestedStateF[RaffleHistory, Option[RaffleState]]
+  implicit val identityIdentityRaffleHistoryNestedStateF = identityIdentityNestedState2F[RaffleHistory, Option[RaffleState]]
 
   new PureRaffleApp[λ[`+A` => RaffleHistory => Option[RaffleState] => Identity[(Option[RaffleState], (RaffleHistory, A))]]].runApp()
 

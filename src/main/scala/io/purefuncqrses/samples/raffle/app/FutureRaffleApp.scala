@@ -7,7 +7,7 @@ import scala.concurrent.Future
 
 object FutureRaffleApp extends App {
 
-  implicit val futureRaffleHistoryStateF = futureStateF[RaffleHistory]
+  implicit val futureRaffleHistoryStateF = futureState1F[RaffleHistory]
 
   new RaffleApp[λ[`+A` => RaffleHistory => Future[(RaffleHistory, A)]]].runApp()
 
