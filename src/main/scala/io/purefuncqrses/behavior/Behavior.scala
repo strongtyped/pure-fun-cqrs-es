@@ -1,9 +1,9 @@
 package io.purefuncqrses.behavior
 
 import io.purefuncqrses.features.{FailureF, RunF, State1F, SuccessF}
+import shapeless.HList
 
 import scala.collection.immutable
-
 import scala.language.higherKinds
 
 object Behavior {
@@ -49,5 +49,9 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[History[
 
   private def handler: Handler[C, M] =
     partialHandlers.foldRight(unknownHandler)(_ orElse _)
+
+
+  protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit]
+
 
 }

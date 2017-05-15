@@ -2,7 +2,6 @@ package io.purefuncqrses.samples.raffle.behavior
 
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
-import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.features.ops.FeatureOps._
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import shapeless.{HList, HNil}
@@ -16,6 +15,7 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistor
 
   var currentOptionalRaffleState: Option[RaffleState] = None
 
+
   override protected def setState(hList: HList): M[Unit] = {
     val newRaffleHistory: RaffleHistory = hList._1
     val newOptionalRaffleState: Option[RaffleState] = hList._2
@@ -25,18 +25,10 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistor
     }
   }
 
-  override protected def raffleCommandHandlerTemplate(command: RaffleCommand, commandHandlerBody: (RaffleCommand, HList) => M[Unit]): M[Unit] = {
+  override protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit] = {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
-      commandHandlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
-    }
-  }
-
-  // TODO: still needed?
-  override protected def raffleCommandWithNameHandlerTemplate(command: RaffleCommandWithName, commandWithNameHandlerBody: (RaffleCommandWithName, HList) => M[Unit]): M[Unit] = {
-    println(s"\ncase $command =>")
-    getState1(()) flatMap { currentRaffleHistory =>
-      commandWithNameHandlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
+      handlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
     }
   }
 

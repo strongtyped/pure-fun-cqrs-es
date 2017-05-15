@@ -13,6 +13,7 @@ abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : St
 
   protected val implicitRaffleHistoryState1F = implicitly[State1F[RaffleHistory, M]]
 
+
   override protected def isRaffleCreated(hList: HList): Boolean = {
     val currentOptionalRaffleState: Option[RaffleState] = hList._2
     currentOptionalRaffleState.isDefined
@@ -33,6 +34,7 @@ abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : St
     currentOptionalRaffleState.get.asInstanceOf[OpenState].participants.contains(name)
   }
 
+
   override protected def newStateForCreateRaffle(hList: HList): HList = {
     val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(hList)
     val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleFrom(raffleId)
@@ -40,8 +42,8 @@ abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : St
   }
 
   override protected def newStateForCreateRaffleAddingParticipant(name: String)(hList: HList): HList = {
-    val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleWithAddingParticipantFrom(name, hList)
-    val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleWithAddingParticipantFrom(name, raffleId)
+    val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, hList)
+    val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleAddingParticipantFrom(name, raffleId)
     newRaffleHistory :: newOptionalRaffleState :: HNil
   }
 

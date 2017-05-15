@@ -2,7 +2,6 @@ package io.purefuncqrses.samples.raffle.behavior
 
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features._
-import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.features.ops.FeatureOps._
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import shapeless.{HList, HNil}
@@ -30,21 +29,11 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
     }
   }
 
-  override protected def raffleCommandHandlerTemplate(command: RaffleCommand, commandHandlerBody: (RaffleCommand, HList) => M[Unit]): M[Unit] = {
+  override protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit] = {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
       getState2(()) flatMap { currentOptionalRaffleState =>
-        commandHandlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
-      }
-    }
-  }
-
-  // TODO: still needed?
-  override protected def raffleCommandWithNameHandlerTemplate(command: RaffleCommandWithName, commandWithNameHandlerBody: (RaffleCommandWithName, HList) => M[Unit]): M[Unit] = {
-    println(s"\ncase $command =>")
-    getState1(()) flatMap { currentRaffleHistory =>
-      getState2(()) flatMap { currentOptionalRaffleState =>
-        commandWithNameHandlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
+        handlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
       }
     }
   }

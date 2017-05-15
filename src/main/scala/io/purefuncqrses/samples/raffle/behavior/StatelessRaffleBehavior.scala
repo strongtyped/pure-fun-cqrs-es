@@ -18,6 +18,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
   import implicitRaffleHistoryState1F._
 
+
   override protected def isRaffleCreated(hList: HList): Boolean = {
     val currentRaffleHistory: RaffleHistory = hList._1
     currentRaffleHistory.nonEmpty
@@ -51,13 +52,22 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
     numberOfTimesAdded > numberOfTimesRemoved
   }
 
+
+  override protected def setState(hList: HList): M[Unit] = {
+    val newRaffleHistory: RaffleHistory = hList.asInstanceOf[shapeless.::[RaffleHistory, HNil]].head
+    setState1 {
+      newRaffleHistory
+    }
+  }
+
+
   override protected def newStateForCreateRaffle(hList: HList): HList = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(hList)
     newRaffleHistory :: HNil
   }
 
   override protected def newStateForCreateRaffleAddingParticipant(name: String)(hList: HList): HList = {
-    val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleWithAddingParticipantFrom(name, hList)
+    val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, hList)
     newRaffleHistory :: HNil
   }
 
@@ -76,24 +86,11 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
     newRaffleHistory :: HNil
   }
 
-  override protected def setState(hList: HList): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = hList.asInstanceOf[shapeless.::[RaffleHistory, HNil]].head
-    setState1 {
-      newRaffleHistory
-    }
-  }
 
-  override protected def raffleCommandHandlerTemplate(command: RaffleCommand, commandHandlerBody: (RaffleCommand, HList) => M[Unit]): M[Unit] = {
+  override protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit] = {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
-      commandHandlerBody(command, currentRaffleHistory :: HNil)
-    }
-  }
-
-  override protected def raffleCommandWithNameHandlerTemplate(command: RaffleCommandWithName, commandWithNameHandlerBody: (RaffleCommandWithName, HList) => M[Unit]): M[Unit] = {
-    println(s"\ncase $command =>")
-    getState1(()) flatMap { currentRaffleHistory =>
-      commandWithNameHandlerBody(command, currentRaffleHistory :: HNil)
+      handlerBody(command, currentRaffleHistory :: HNil)
     }
   }
 
