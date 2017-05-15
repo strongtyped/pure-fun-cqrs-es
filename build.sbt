@@ -6,6 +6,8 @@ scalaVersion := "2.12.1"
 
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
 
+libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
+
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
 resolvers += Resolver.sonatypeRepo("releases")
