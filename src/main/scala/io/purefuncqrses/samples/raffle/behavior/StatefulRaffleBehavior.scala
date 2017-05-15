@@ -1,5 +1,6 @@
 package io.purefuncqrses.samples.raffle.behavior
 
+import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
 import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.features.ops.FeatureOps._
@@ -16,8 +17,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistor
   var currentOptionalRaffleState: Option[RaffleState] = None
 
   override protected def setState(hList: HList): M[Unit] = {
-    val newOptionalRaffleState: Option[RaffleState] = hList.asInstanceOf[shapeless.::[Option[RaffleState], shapeless.::[RaffleHistory, HNil]]].head
-    val newRaffleHistory: RaffleHistory = hList.asInstanceOf[shapeless.::[RaffleHistory, shapeless.::[RaffleHistory, HNil]]].tail.asInstanceOf[shapeless.::[RaffleHistory, HNil]].head
+    val newRaffleHistory: RaffleHistory = hList._1
+    val newOptionalRaffleState: Option[RaffleState] = hList._2
     this.currentOptionalRaffleState = newOptionalRaffleState
     setState1 {
       newRaffleHistory
@@ -31,6 +32,7 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistor
     }
   }
 
+  // TODO: still needed?
   override protected def raffleCommandWithNameHandlerTemplate(command: RaffleCommandWithName, commandWithNameHandlerBody: (RaffleCommandWithName, HList) => M[Unit]): M[Unit] = {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>

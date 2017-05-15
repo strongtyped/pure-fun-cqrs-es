@@ -24,6 +24,7 @@ object Util {
 
   implicit class UnsafeHListOps(hList: HList) {
     def _1[A]: A = hList.asInstanceOf[shapeless.::[A, HNil]].head
+
     def _2[A, B]: B = hList.asInstanceOf[shapeless.::[A, shapeless.::[B, HNil]]].tail.asInstanceOf[shapeless.::[B, HNil]].head
   }
 

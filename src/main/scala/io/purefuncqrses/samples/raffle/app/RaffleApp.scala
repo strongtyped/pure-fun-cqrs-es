@@ -15,7 +15,7 @@ class RaffleApp[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]] : Ru
 
   override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatelessRaffleBehavior[M]
 
-//  override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatefulRaffleBehavior[M]
+  // override protected val raffleBehavior: AbstractRaffleBehavior[M] = new StatefulRaffleBehavior[M]
 
   override protected val input: Input = (empty, ()).asInstanceOf[Input]
 

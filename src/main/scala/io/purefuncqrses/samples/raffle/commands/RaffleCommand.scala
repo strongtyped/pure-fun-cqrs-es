@@ -8,7 +8,7 @@ case object CreateRaffleCommand extends RaffleCommand
 case object SelectWinnerCommand extends RaffleCommand
 
 trait RaffleCommandWithName extends RaffleCommand {
-  val name : String
+  val name: String
 }
 
 case class CreateRaffleAddingParticipantCommand(name: String) extends RaffleCommandWithName
