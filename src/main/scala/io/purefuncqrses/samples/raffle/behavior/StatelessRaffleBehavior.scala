@@ -1,13 +1,13 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.behavior.Behavior.{Handler, HandlerBody}
+import io.purefuncqrses.behavior.Behavior.Handler
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
-import io.purefuncqrses.samples.raffle.commands._
+
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
 import io.purefuncqrses.features.ops.FeatureOps._
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{HandlerBody, RaffleHistory}
 import shapeless.{::, HList, HNil}
 
 import scala.language.higherKinds
@@ -55,7 +55,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
 
   override protected def setState(hList: HList): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = hList.asInstanceOf[shapeless.::[RaffleHistory, HNil]].head
+    val newRaffleHistory: RaffleHistory = hList._1
     setState1 {
       newRaffleHistory
     }

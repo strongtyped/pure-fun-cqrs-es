@@ -1,10 +1,10 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.behavior.Behavior.{Handler, HandlerBody}
+import io.purefuncqrses.behavior.Behavior.Handler
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
 import io.purefuncqrses.features.ops.FeatureOps._
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{HandlerBody, RaffleHistory}
 import shapeless.{HList, HNil}
 
 import scala.language.higherKinds
@@ -25,6 +25,7 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistor
       newRaffleHistory
     }
   }
+
 
   override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")

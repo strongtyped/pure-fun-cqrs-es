@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.behavior.Behavior
-import io.purefuncqrses.behavior.Behavior.{HandlerBody, _}
+import io.purefuncqrses.behavior.Behavior._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands.{RaffleCommand, _}
@@ -20,8 +20,9 @@ object AbstractRaffleBehavior {
   type RaffleCommands = immutable.Seq[RaffleCommand]
   type RaffleHistory = History[RaffleEvent]
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
+  type HandlerBody[C, M[+ _]] = (C, HList) => M[Unit]
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
-  type RaffleCommandHandlerForAll[M[+ _]] = HandlerForAll[RaffleCommand, M]
+  type RaffleCommandHandlerForEach[M[+ _]] = HandlerForEach[RaffleCommand, M]
 }
 
 import AbstractRaffleBehavior._
@@ -54,11 +55,12 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   protected def newStateForSelectWinner(hList: HList): HList
 
+  protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M]
 
-  protected def raffleCommandHandlerTemplate(commandHandlerBody: HandlerBody[RaffleCommand, M]): Handler[RaffleCommand, M] =
+  private  def raffleCommandHandlerTemplate(commandHandlerBody: HandlerBody[RaffleCommand, M]): Handler[RaffleCommand, M] =
     handlerTemplate[RaffleCommand](commandHandlerBody)
 
-  protected def raffleCommandWithNameHandlerTemplate(commandWithNameHandlerBody: HandlerBody[RaffleCommandWithName, M]): Handler[RaffleCommandWithName, M] =
+  private def raffleCommandWithNameHandlerTemplate(commandWithNameHandlerBody: HandlerBody[RaffleCommandWithName, M]): Handler[RaffleCommandWithName, M] =
     handlerTemplate[RaffleCommandWithName](commandWithNameHandlerBody)
 
 
@@ -79,7 +81,8 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   }
 
 
-  protected def commandHandlerBodyTemplate(condition: => HList => Boolean, newState: HList => HList): HandlerBody[RaffleCommand, M] = (command, hList) => {
+  protected def commandHandlerBodyTemplate(condition: => HList => Boolean, newState: HList => HList): HandlerBody[RaffleCommand, M] =
+    (command, hList) => {
     val currentRaffleHistory: RaffleHistory = hList._1
     println(s"\ncurrent raffle history = $currentRaffleHistory")
     if (condition(hList)) {

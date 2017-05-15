@@ -42,7 +42,7 @@ trait SuccessF[M[+ _]] {
       }
     }
 
-  def forAll[A](as: immutable.Seq[A]): (A => M[Unit]) => M[Unit] =
+  def forEach[A](as: immutable.Seq[A]): (A => M[Unit]) => M[Unit] =
     f_a2mu => map(traverse(f_a2mu)(as))(_ => ())
 
   def sequence[A]: immutable.Seq[M[A]] => M[immutable.Seq[A]] =

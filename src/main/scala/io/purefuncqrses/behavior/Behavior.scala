@@ -14,11 +14,9 @@ object Behavior {
 
   type PartialHandlers[C, M[+ _]] = List[PartialHandler[C, M]]
 
-  type Handler[C, M[+ _]] = Function[C, M[Unit]]
+  type Handler[C, M[+ _]] = C => M[Unit]
 
-  type HandlerBody[C, M[+ _]] = Function2[C, HList, M[Unit]]
-
-  type HandlerForAll[C, M[+ _]] = Function[immutable.Seq[C], M[Unit]]
+  type HandlerForEach[C, M[+ _]] = immutable.Seq[C] => M[Unit]
 
   def empty[E] = immutable.Seq[E]()
 
@@ -38,22 +36,19 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[History[
 
   import implicitFailureF._
 
-  def handlerForAll: HandlerForAll[C, M] =
-    forAll[C](_)(handler)
-
   protected val partialHandlers: PartialHandlers[C, M]
 
-  private val unknownHandler: PartialHandler[C, M] = {
+  private val failurePartialHandler: PartialHandler[C, M] = {
     case c =>
       println(s"\ncase $c =>")
       failure(new IllegalStateException(s"unknown $c"))
   }
 
   private def handler: Handler[C, M] =
-    partialHandlers.foldRight(unknownHandler)(_ orElse _)
+    partialHandlers.foldRight(failurePartialHandler)(_ orElse _)
 
 
-  protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M]
-
+  def handlerForEach: HandlerForEach[C, M] =
+    forEach[C](_)(handler)
 
 }
