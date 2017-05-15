@@ -1,5 +1,6 @@
 package io.purefuncqrses.samples.raffle.behavior
 
+import io.purefuncqrses.behavior.Behavior.{Handler, HandlerBody}
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features._
 import io.purefuncqrses.features.ops.FeatureOps._
@@ -29,7 +30,7 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
     }
   }
 
-  override protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit] = {
+  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
       getState2(()) flatMap { currentOptionalRaffleState =>

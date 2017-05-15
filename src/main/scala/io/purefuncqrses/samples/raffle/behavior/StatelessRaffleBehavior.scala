@@ -1,5 +1,6 @@
 package io.purefuncqrses.samples.raffle.behavior
 
+import io.purefuncqrses.behavior.Behavior.{Handler, HandlerBody}
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
 import io.purefuncqrses.samples.raffle.commands._
@@ -7,7 +8,7 @@ import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
 import io.purefuncqrses.features.ops.FeatureOps._
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
-import shapeless.{HList, HNil, ::}
+import shapeless.{::, HList, HNil}
 
 import scala.language.higherKinds
 
@@ -87,7 +88,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
   }
 
 
-  override protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit] = {
+  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
       handlerBody(command, currentRaffleHistory :: HNil)

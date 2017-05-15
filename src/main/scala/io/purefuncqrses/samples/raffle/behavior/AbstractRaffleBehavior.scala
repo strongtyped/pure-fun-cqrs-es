@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.behavior.Behavior
-import io.purefuncqrses.behavior.Behavior.{HandlerForAll, History, PartialHandler}
+import io.purefuncqrses.behavior.Behavior._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands._
@@ -55,11 +55,11 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   protected def newStateForSelectWinner(hList: HList): HList
 
 
-  protected def raffleCommandHandlerTemplate(command: RaffleCommand, commandHandlerBody: (RaffleCommand, HList) => M[Unit]): M[Unit] =
-  handlerTemplate[RaffleCommand](command, commandHandlerBody)
+  protected def raffleCommandHandlerTemplate(commandHandlerBody: HandlerBody[RaffleCommand, M]): Handler[RaffleCommand, M] =
+    handlerTemplate[RaffleCommand](commandHandlerBody)
 
-  protected def raffleCommandWithNameHandlerTemplate(command: RaffleCommandWithName, commandWithNameHandlerBody: (RaffleCommandWithName, HList) => M[Unit]): M[Unit] =
-    handlerTemplate[RaffleCommandWithName](command, commandWithNameHandlerBody)
+  protected def raffleCommandWithNameHandlerTemplate(commandWithNameHandlerBody: HandlerBody[RaffleCommandWithName, M]): Handler[RaffleCommandWithName, M] =
+    handlerTemplate[RaffleCommandWithName](commandWithNameHandlerBody)
 
 
   protected def createRaffleCondition(hList: HList): Boolean =
@@ -191,27 +191,27 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   private lazy val createRaffleCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleCommand.type =>
-      raffleCommandHandlerTemplate(command, createRaffleCommandHandlerBody)
+      raffleCommandHandlerTemplate(createRaffleCommandHandlerBody)(command)
   }
 
   private lazy val createRaffleAddingParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleAddingParticipantCommand =>
-      raffleCommandWithNameHandlerTemplate(command, createRaffleAddingParticipantCommandHandlerBody)
+      raffleCommandWithNameHandlerTemplate(createRaffleAddingParticipantCommandHandlerBody)(command)
   }
 
   private lazy val addParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: AddParticipantCommand =>
-      raffleCommandWithNameHandlerTemplate(command, addParticipantCommandHandlerBody)
+      raffleCommandWithNameHandlerTemplate(addParticipantCommandHandlerBody)(command)
   }
 
   private lazy val removeParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: RemoveParticipantCommand =>
-      raffleCommandWithNameHandlerTemplate(command, removeParticipantCommandHandlerBody)
+      raffleCommandWithNameHandlerTemplate(removeParticipantCommandHandlerBody)(command)
   }
 
   private lazy val selectWinnerCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: SelectWinnerCommand.type =>
-      raffleCommandHandlerTemplate(command, selectWinnerCommandHandlerBody)
+      raffleCommandHandlerTemplate(selectWinnerCommandHandlerBody)(command)
   }
 
   override protected val partialHandlers: PartialRaffleCommandHandlers[M] =

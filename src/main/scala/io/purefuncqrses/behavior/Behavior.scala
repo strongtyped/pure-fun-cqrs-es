@@ -16,6 +16,8 @@ object Behavior {
 
   type Handler[C, M[+ _]] = Function[C, M[Unit]]
 
+  type HandlerBody[C, M[+ _]] = Function2[C, HList, M[Unit]]
+
   type HandlerForAll[C, M[+ _]] = Function[immutable.Seq[C], M[Unit]]
 
   def empty[E] = immutable.Seq[E]()
@@ -51,7 +53,7 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[History[
     partialHandlers.foldRight(unknownHandler)(_ orElse _)
 
 
-  protected def handlerTemplate[Cmd](command: Cmd, handlerBody: (Cmd, HList) => M[Unit]): M[Unit]
+  protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M]
 
 
 }
