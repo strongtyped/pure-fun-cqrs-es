@@ -7,6 +7,6 @@ import io.purefuncqrses.Identity
 
 object IdentityRaffleApp extends App {
 
-  new RaffleApp[λ[`+A` => StateTransformed[State, Identity, A]]].runApp()
+  new HistoryArgRaffleApp[λ[`+A` => StateTransformed[State, Identity, A]]].runApp()
 
 }

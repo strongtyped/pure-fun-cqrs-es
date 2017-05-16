@@ -7,6 +7,6 @@ import scala.concurrent.Future
 
 object FutureRaffleApp extends App {
 
-  new RaffleApp[λ[`+A` => StateTransformed[State, Future, A]]].runApp()
+  new HistoryArgRaffleApp[λ[`+A` => StateTransformed[State, Future, A]]].runApp()
 
 }

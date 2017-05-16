@@ -7,6 +7,6 @@ import scala.util.Try
 
 object TryRaffleApp extends App {
 
-  new RaffleApp[λ[`+A` => StateTransformed[State, Try, A]]].runApp()
+  new HistoryArgRaffleApp[λ[`+A` => StateTransformed[State, Try, A]]].runApp()
 
 }
