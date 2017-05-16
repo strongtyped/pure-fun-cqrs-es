@@ -56,11 +56,11 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]
 
 
   override protected def setState(args: Args): M[Unit] = args match {
-    case state : HistoryArg =>
+    case state: HistoryArg =>
       write {
         state
       }
-    case state =>
+    case _ =>
       failure(new IllegalStateException(s"$args is not a 'history' argument"))
   }
 
@@ -86,7 +86,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]
   }
 
   override protected def newStateForSelectWinner(args: Args): Args = {
-    val (winner, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
+    val (_, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
     HistoryArg(newRaffleHistory)
   }
 
@@ -94,8 +94,8 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]
   override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
-      case state : HistoryArg =>
-      handlerBody(command, state)
+      case state: HistoryArg =>
+        handlerBody(command, state)
       case state =>
         failure(new IllegalStateException(s"$state is not a 'history' state"))
     }

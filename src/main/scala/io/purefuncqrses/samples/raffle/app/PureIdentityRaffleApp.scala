@@ -1,12 +1,12 @@
 package io.purefuncqrses.samples.raffle.app
 
+import io.purefuncqrses.Identity
 import io.purefuncqrses.features.transform.StateTransformer.StateTransformed
 import io.purefuncqrses.samples.raffle.behavior.State
 
-import scala.concurrent.Future
 
-object FutureRaffleApp extends App {
+object PureIdentityRaffleApp extends App {
 
-  new RaffleApp[λ[`+A` => StateTransformed[State, Future, A]]].runApp()
+  new PureRaffleApp[λ[`+A` => StateTransformed[State, Identity, A]]].runApp()
 
 }

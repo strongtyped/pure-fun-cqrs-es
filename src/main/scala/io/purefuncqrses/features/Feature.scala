@@ -13,8 +13,6 @@ trait SuccessF[M[+ _]] {
   // default implementations
   //
 
-  val done: M[Unit] = success(())
-
   def map[A, B](ma: M[A])(f_a2b: A => B): M[B] =
     flatMap(ma) { a =>
       success(f_a2b(a))
@@ -40,12 +38,6 @@ trait SuccessF[M[+ _]] {
       }
     }
 
-  def forEach[A](as: immutable.Seq[A]): (A => M[Unit]) => M[Unit] =
-    f_a2mu => map(traverse(f_a2mu)(as))(_ => ())
-
-  def sequence[A]: immutable.Seq[M[A]] => M[immutable.Seq[A]] =
-    traverse[M[A], A](identity)
-
 }
 
 trait FailureF[M[+ _]] {
@@ -64,28 +56,6 @@ trait StateF[S1, M[+ _]] {
   val read: Unit => M[S1]
 
 }
-
-//trait NestStateF[S, M[+ _]] {
-//
-//  def nestState[A, B](f_a2mb: A => M[B]): A => State1[S, M, B]
-//
-//}
-//
-//trait State2F[S2, M[+ _]] {
-//
-//  val write2: S2 => M[Unit]
-//  val read2: Unit => M[S2]
-//
-//}
-//
-//trait State3F[S3, M[+ _]] {
-//
-//  val write3: S3 => M[Unit]
-//  val read3: Unit => M[S3]
-//
-//}
-//
-// and so on ...
 
 trait RunF[M[+ _]] {
 

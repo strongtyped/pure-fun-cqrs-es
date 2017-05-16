@@ -14,6 +14,7 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
 
   import implicitStateF._
 
+
   var currentOptionalRaffleState: Option[RaffleState] = None
 
 
@@ -26,7 +27,7 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
       write {
         state
       }
-    case state =>
+    case _ =>
       failure(new IllegalStateException(s"$args are not 'history and optional state' arguments"))
   }
 
@@ -34,9 +35,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
   override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
-      case state : HistoryArg =>
-      // currentRaffleHistory =>
-      handlerBody(command, HistoryAndOptionalStateArgs(state.raffleHistory, currentOptionalRaffleState))
+      case state: HistoryArg =>
+        handlerBody(command, HistoryAndOptionalStateArgs(state.raffleHistory, currentOptionalRaffleState))
       case state =>
         failure(new IllegalStateException(s"$state is not a 'history' state"))
     }

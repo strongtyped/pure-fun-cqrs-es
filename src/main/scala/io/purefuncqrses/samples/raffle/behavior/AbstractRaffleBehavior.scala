@@ -12,8 +12,9 @@ import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.collection.immutable
-import scala.language.higherKinds
 import scala.util.Random
+
+import scala.language.higherKinds
 
 object AbstractRaffleBehavior {
   type RaffleCommands = immutable.Seq[RaffleCommand]
@@ -21,7 +22,7 @@ object AbstractRaffleBehavior {
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
   type HandlerBody[C, M[+ _]] = (C, Args) => M[Unit]
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
-  type RaffleCommandHandlerForEach[M[+ _]] = HandlerForEach[RaffleCommand, M]
+  type RaffleCommandHandlerForAll[M[+ _]] = HandlerForAll[RaffleCommand, M]
 }
 
 import AbstractRaffleBehavior._

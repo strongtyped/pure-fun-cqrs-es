@@ -1,7 +1,6 @@
 package io.purefuncqrses.samples.raffle.behavior
 
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.language.higherKinds
@@ -46,7 +45,7 @@ abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : St
   }
 
   override protected def newStateForAddParticipant(name: String)(args: Args): Args = {
-    val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name: String, args: Args)
+    val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
     val newOptionalRaffleState = newOptionalRaffleStateForAddParticipantFrom(name, args)
     HistoryAndOptionalStateArgs(newRaffleHistory, newOptionalRaffleState)
   }

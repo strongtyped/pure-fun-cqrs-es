@@ -1,6 +1,6 @@
 package io.purefuncqrses.behavior
 
-import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
+import io.purefuncqrses.features.{SuccessF, FailureF, StateF}
 import io.purefuncqrses.features.ops.FeatureOps._
 import io.purefuncqrses.samples.raffle.behavior.State
 
@@ -17,7 +17,8 @@ object Behavior {
 
   type Handler[C, M[+ _]] = C => M[Unit]
 
-  type HandlerForEach[C, M[+ _]] = immutable.Seq[C] => M[Unit]
+  type HandlerForAll[C, M[+ _]] = immutable.Seq[C] => M[Unit]
+
 
   def empty[E] = immutable.Seq[E]()
 
@@ -45,11 +46,11 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : StateF[State, ?[
       failure(new IllegalStateException(s"unknown $c"))
   }
 
-  private def handler: Handler[C, M] =
+  private def handle: Handler[C, M] =
     partialHandlers.foldRight(failurePartialHandler)(_ orElse _)
 
 
-  def handlerForEach: HandlerForEach[C, M] =
-    traverse(handler)(_).ignore
+  def handleAll: HandlerForAll[C, M] =
+    traverse(handle)(_).ignore
 
 }

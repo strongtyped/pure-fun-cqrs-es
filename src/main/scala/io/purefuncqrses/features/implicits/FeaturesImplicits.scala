@@ -58,15 +58,6 @@ object FeaturesImplicits {
       with IdentityFailureF
       with IdentityRunF
 
-//  implicit def identityNestStateF[S, T] = new NestStateF[S, λ[`+A` => State1[T, Identity, A]]] {
-//    def nestState[A, B](f_a2sib: A => State1[T, Identity, B]): A => State2[T, S, Identity, (S, B)] =
-//      a =>
-//        s =>
-//          t => {
-//            val (tt, b) = f_a2sib(a)(t).value
-//            Identity((tt, (s, b)))
-//          }
-//  }
 
   class OptionSuccessF extends SuccessF[Option] {
 
@@ -101,6 +92,7 @@ object FeaturesImplicits {
       with OptionFailureF =
     new OptionSuccessF
       with OptionFailureF
+
 
   class TrySuccessF extends SuccessF[Try] {
 
@@ -146,6 +138,7 @@ object FeaturesImplicits {
       with TryFailureF
       with TryRunF
 
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   class FutureSuccessF extends SuccessF[Future] {
@@ -190,6 +183,7 @@ object FeaturesImplicits {
       with FutureFailureF
       with FutureRunF
 
+
   implicit def identityStateF[S]:
   SuccessF[λ[`+A` => StateTransformed[S, Identity, A]]]
     with FailureF[λ[`+A` => StateTransformed[S, Identity, A]]]
@@ -210,15 +204,5 @@ object FeaturesImplicits {
     with RunF[λ[`+A` => StateTransformed[S, Future, A]]]
     with StateF[S, λ[`+A` => StateTransformed[S, Future, A]]] =
     new StateTransformer[S, Future]
-
-  // TODO: other combinations
-  //
-//  implicit def identityIdentityNestedState2F[S, T]:
-//  SuccessF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
-//    with FailureF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
-//    with RunF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
-//    with StateF[S, λ[`+A` => State2[T, S, Identity, (S, A)]]]
-//    with State2F[T, λ[`+A` => State2[T, S, Identity, (S, A)]]] =
-//  new State2T[S, T, λ[`+A` => State1[T, Identity, A]]]
 
 }
