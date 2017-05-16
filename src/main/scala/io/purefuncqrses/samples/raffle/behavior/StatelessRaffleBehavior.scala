@@ -14,6 +14,8 @@ import scala.language.higherKinds
 class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]]]
   extends AbstractRaffleBehavior[M] {
 
+  import implicitFailureF._
+
   private val implicitRaffleHistoryState1F = implicitly[State1F[RaffleHistory, M]]
 
   import implicitRaffleHistoryState1F._
@@ -53,11 +55,14 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
   }
 
 
-  override protected def setState(args: Args): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = args.getRaffleHistory
-    setState1 {
-      newRaffleHistory
-    }
+  override protected def setState(args: Args): M[Unit] = args match {
+    case History_Arg(_) =>
+      val newRaffleHistory: RaffleHistory = args.getRaffleHistory
+      setState1 {
+        newRaffleHistory
+      }
+    case _ =>
+      failure(new IllegalStateException(s"$args is not a history argument"))
   }
 
 

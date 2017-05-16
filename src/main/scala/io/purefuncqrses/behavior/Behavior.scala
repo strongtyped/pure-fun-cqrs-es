@@ -1,6 +1,7 @@
 package io.purefuncqrses.behavior
 
 import io.purefuncqrses.features.{FailureF, RunF, State1F, SuccessF}
+import io.purefuncqrses.features.ops.FeatureOps._
 
 import scala.collection.immutable
 import scala.language.higherKinds
@@ -48,6 +49,6 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[History[
 
 
   def handlerForEach: HandlerForEach[C, M] =
-    forEach[C](_)(handler)
+    traverse(handler)(_).ignore
 
 }

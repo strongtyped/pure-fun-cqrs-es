@@ -56,7 +56,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M]
 
-  private  def raffleCommandHandlerTemplate(commandHandlerBody: HandlerBody[RaffleCommand, M]): Handler[RaffleCommand, M] =
+  private def raffleCommandHandlerTemplate(commandHandlerBody: HandlerBody[RaffleCommand, M]): Handler[RaffleCommand, M] =
     handlerTemplate[RaffleCommand](commandHandlerBody)
 
   private def raffleCommandWithNameHandlerTemplate(commandWithNameHandlerBody: HandlerBody[RaffleCommandWithName, M]): Handler[RaffleCommandWithName, M] =
@@ -81,15 +81,18 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
 
   protected def commandHandlerBodyTemplate(condition: => Args => Boolean, newState: Args => Args): HandlerBody[RaffleCommand, M] =
-    (command, args) => {
-    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
-    println(s"\ncurrent raffle history = $currentRaffleHistory")
-    if (condition(args)) {
-      setState(newState(args))
-    } else {
-      failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
+    (command, args) => args match {
+      case History_Arg(_) | History_And_OptionalState_Args(_, _) =>
+        val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+        println(s"\ncurrent raffle history = $currentRaffleHistory")
+        if (condition(args)) {
+          setState(newState(args))
+        } else {
+          failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
+        }
+      case _ =>
+        failure(new IllegalStateException(s"no history in $args"))
     }
-  }
 
   protected val createRaffleCommandHandlerBody: HandlerBody[RaffleCommand, M] =
     commandHandlerBodyTemplate(createRaffleCondition, newStateForCreateRaffle)
@@ -146,7 +149,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     newRaffleHistory
   }
 
-  protected def newOptionalRaffleStateForAddParticipantFrom(name: String, args: Args) = {
+  protected def newOptionalRaffleStateForAddParticipantFrom(name: String, args: Args): Option[OpenState] = {
     val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
@@ -163,7 +166,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     newRaffleHistory
   }
 
-  protected def newOptionalRaffleStateForRemoveParticipantFrom(name: String, args: Args) = {
+  protected def newOptionalRaffleStateForRemoveParticipantFrom(name: String, args: Args): Option[OpenState] = {
     val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
