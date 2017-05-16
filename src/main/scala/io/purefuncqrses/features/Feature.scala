@@ -1,7 +1,5 @@
 package io.purefuncqrses.features
 
-import io.purefuncqrses.State1
-
 import scala.collection.immutable
 import scala.language.higherKinds
 
@@ -60,33 +58,33 @@ trait FailureF[M[+ _]] {
 
 }
 
-trait NestStateF[S, M[+ _]] {
+trait StateF[S1, M[+ _]] {
 
-  def nestState[A, B](f_a2mb: A => M[B]): A => State1[S, M, B]
-
-}
-
-trait State1F[S1, M[+ _]] {
-
-  val setState1: S1 => M[Unit]
-  val getState1: Unit => M[S1]
+  val write: S1 => M[Unit]
+  val read: Unit => M[S1]
 
 }
 
-trait State2F[S2, M[+ _]] {
-
-  val setState2: S2 => M[Unit]
-  val getState2: Unit => M[S2]
-
-}
-
-trait State3F[S3, M[+ _]] {
-
-  val setState3: S3 => M[Unit]
-  val getState3: Unit => M[S3]
-
-}
-
+//trait NestStateF[S, M[+ _]] {
+//
+//  def nestState[A, B](f_a2mb: A => M[B]): A => State1[S, M, B]
+//
+//}
+//
+//trait State2F[S2, M[+ _]] {
+//
+//  val write2: S2 => M[Unit]
+//  val read2: Unit => M[S2]
+//
+//}
+//
+//trait State3F[S3, M[+ _]] {
+//
+//  val write3: S3 => M[Unit]
+//  val read3: Unit => M[S3]
+//
+//}
+//
 // and so on ...
 
 trait RunF[M[+ _]] {

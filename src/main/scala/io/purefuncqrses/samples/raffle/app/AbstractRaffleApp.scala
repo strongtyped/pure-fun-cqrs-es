@@ -1,14 +1,14 @@
 package io.purefuncqrses.samples.raffle.app
 
-import io.purefuncqrses.features.{FailureF, RunF, State1F, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior
+import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
+import io.purefuncqrses.samples.raffle.behavior.{AbstractRaffleBehavior, State}
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{RaffleCommands, RaffleHistory}
 import io.purefuncqrses.samples.raffle.commands.{AddParticipantCommand, CreateRaffleCommand, RemoveParticipantCommand, SelectWinnerCommand}
 import io.purefuncqrses.behavior.Behavior.seq
 
 import scala.language.higherKinds
 
-abstract class AbstractRaffleApp[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]] : RunF] {
+abstract class AbstractRaffleApp[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]] : RunF] {
 
   protected val implicitRunF: RunF[M] = implicitly[RunF[M]]
 
@@ -28,19 +28,22 @@ abstract class AbstractRaffleApp[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
       SelectWinnerCommand
     )
 
-  protected val input: Input
+  protected def input: Input
 
-  protected type Output
+  protected type Output = (State, Unit)
 
-  protected def output(): Output = {
+  protected def output: Output = {
     val raffle: M[Unit] = raffleBehavior.handlerForEach(raffleCommands)
     run(raffle)(input)
   }
 
-  protected val raffleHistory: RaffleHistory
+  protected def state: State = output._1
 
   def runApp() {
-    println("\n" + raffleHistory.last)
+    val result = state
+    println("\n================================================================================")
+    println(result)
+    println("================================================================================\n")
   }
 
 }

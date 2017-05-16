@@ -1,8 +1,9 @@
 package io.purefuncqrses.features.implicits
 
-import io.purefuncqrses.{Identity, State1, State2}
-import io.purefuncqrses.features.transform.{State1T, State2T}
+import io.purefuncqrses.Identity
+import io.purefuncqrses.features.transform.StateTransformer
 import io.purefuncqrses.features._
+import io.purefuncqrses.features.transform.StateTransformer.StateTransformed
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
@@ -57,15 +58,15 @@ object FeaturesImplicits {
       with IdentityFailureF
       with IdentityRunF
 
-  implicit def identityNestStateF[S, T] = new NestStateF[S, λ[`+A` => State1[T, Identity, A]]] {
-    def nestState[A, B](f_a2sib: A => State1[T, Identity, B]): A => State2[T, S, Identity, (S, B)] =
-      a =>
-        s =>
-          t => {
-            val (tt, b) = f_a2sib(a)(t).value
-            Identity((tt, (s, b)))
-          }
-  }
+//  implicit def identityNestStateF[S, T] = new NestStateF[S, λ[`+A` => State1[T, Identity, A]]] {
+//    def nestState[A, B](f_a2sib: A => State1[T, Identity, B]): A => State2[T, S, Identity, (S, B)] =
+//      a =>
+//        s =>
+//          t => {
+//            val (tt, b) = f_a2sib(a)(t).value
+//            Identity((tt, (s, b)))
+//          }
+//  }
 
   class OptionSuccessF extends SuccessF[Option] {
 
@@ -189,35 +190,35 @@ object FeaturesImplicits {
       with FutureFailureF
       with FutureRunF
 
-  implicit def identityState1F[S]:
-  SuccessF[λ[`+A` => State1[S, Identity, A]]]
-    with FailureF[λ[`+A` => State1[S, Identity, A]]]
-    with RunF[λ[`+A` => State1[S, Identity, A]]]
-    with State1F[S, λ[`+A` => State1[S, Identity, A]]] =
-    new State1T[S, Identity]
+  implicit def identityStateF[S]:
+  SuccessF[λ[`+A` => StateTransformed[S, Identity, A]]]
+    with FailureF[λ[`+A` => StateTransformed[S, Identity, A]]]
+    with RunF[λ[`+A` => StateTransformed[S, Identity, A]]]
+    with StateF[S, λ[`+A` => StateTransformed[S, Identity, A]]] =
+    new StateTransformer[S, Identity]
 
-  implicit def tryState2F[S]:
-  SuccessF[λ[`+A` => State1[S, Try, A]]]
-    with FailureF[λ[`+A` => State1[S, Try, A]]]
-    with RunF[λ[`+A` => State1[S, Try, A]]]
-    with State1F[S, λ[`+A` => State1[S, Try, A]]] =
-    new State1T[S, Try]
+  implicit def tryStateF[S]:
+  SuccessF[λ[`+A` => StateTransformed[S, Try, A]]]
+    with FailureF[λ[`+A` => StateTransformed[S, Try, A]]]
+    with RunF[λ[`+A` => StateTransformed[S, Try, A]]]
+    with StateF[S, λ[`+A` => StateTransformed[S, Try, A]]] =
+    new StateTransformer[S, Try]
 
-  implicit def futureState1F[S]:
-  SuccessF[λ[`+A` => State1[S, Future, A]]]
-    with FailureF[λ[`+A` => State1[S, Future, A]]]
-    with RunF[λ[`+A` => State1[S, Future, A]]]
-    with State1F[S, λ[`+A` => State1[S, Future, A]]] =
-    new State1T[S, Future]
+  implicit def futureStateF[S]:
+  SuccessF[λ[`+A` => StateTransformed[S, Future, A]]]
+    with FailureF[λ[`+A` => StateTransformed[S, Future, A]]]
+    with RunF[λ[`+A` => StateTransformed[S, Future, A]]]
+    with StateF[S, λ[`+A` => StateTransformed[S, Future, A]]] =
+    new StateTransformer[S, Future]
 
   // TODO: other combinations
   //
-  implicit def identityIdentityNestedState2F[S, T]:
-  SuccessF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
-    with FailureF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
-    with RunF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
-    with State1F[S, λ[`+A` => State2[T, S, Identity, (S, A)]]]
-    with State2F[T, λ[`+A` => State2[T, S, Identity, (S, A)]]] =
-  new State2T[S, T, λ[`+A` => State1[T, Identity, A]]]
+//  implicit def identityIdentityNestedState2F[S, T]:
+//  SuccessF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
+//    with FailureF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
+//    with RunF[λ[`+A` => State2[T, S, Identity, (S, A)]]]
+//    with StateF[S, λ[`+A` => State2[T, S, Identity, (S, A)]]]
+//    with State2F[T, λ[`+A` => State2[T, S, Identity, (S, A)]]] =
+//  new State2T[S, T, λ[`+A` => State1[T, Identity, A]]]
 
 }

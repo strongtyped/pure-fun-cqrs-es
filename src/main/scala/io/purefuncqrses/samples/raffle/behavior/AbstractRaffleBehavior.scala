@@ -5,7 +5,7 @@ import java.time.OffsetDateTime
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.behavior.Behavior
 import io.purefuncqrses.behavior.Behavior._
-import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
+import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands.{RaffleCommand, _}
 import io.purefuncqrses.samples.raffle.events._
@@ -26,7 +26,7 @@ object AbstractRaffleBehavior {
 
 import AbstractRaffleBehavior._
 
-abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]]]
+abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
   extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
 
   import implicitFailureF._
@@ -82,7 +82,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   protected def commandHandlerBodyTemplate(condition: => Args => Boolean, newState: Args => Args): HandlerBody[RaffleCommand, M] =
     (command, args) => args match {
-      case History_Arg(_) | History_And_OptionalState_Args(_, _) =>
+      case HistoryArg(_) | HistoryAndOptionalStateArgs(_, _) =>
         val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
         println(s"\ncurrent raffle history = $currentRaffleHistory")
         if (condition(args)) {

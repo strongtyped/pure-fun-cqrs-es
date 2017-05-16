@@ -2,7 +2,7 @@ package io.purefuncqrses.samples.raffle.behavior
 
 import io.purefuncqrses.behavior.Behavior.Handler
 import io.purefuncqrses.util.Util._
-import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
+import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
@@ -11,14 +11,14 @@ import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{HandlerB
 
 import scala.language.higherKinds
 
-class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]]]
+class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
   extends AbstractRaffleBehavior[M] {
 
   import implicitFailureF._
 
-  private val implicitRaffleHistoryState1F = implicitly[State1F[RaffleHistory, M]]
+  private val implicitStateF = implicitly[StateF[State, M]]
 
-  import implicitRaffleHistoryState1F._
+  import implicitStateF._
 
 
   override protected def isRaffleCreated(args: Args): Boolean = {
@@ -56,46 +56,48 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
 
   override protected def setState(args: Args): M[Unit] = args match {
-    case History_Arg(_) =>
-      val newRaffleHistory: RaffleHistory = args.getRaffleHistory
-      setState1 {
-        newRaffleHistory
+    case state : HistoryArg =>
+      write {
+        state
       }
-    case _ =>
-      failure(new IllegalStateException(s"$args is not a history argument"))
+    case state =>
+      failure(new IllegalStateException(s"$args is not a 'history' argument"))
   }
 
 
   override protected def newStateForCreateRaffle(args: Args): Args = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(args)
-    History_Arg(newRaffleHistory)
+    HistoryArg(newRaffleHistory)
   }
 
   override protected def newStateForCreateRaffleAddingParticipant(name: String)(args: Args): Args = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, args)
-    History_Arg(newRaffleHistory)
+    HistoryArg(newRaffleHistory)
   }
 
   override protected def newStateForAddParticipant(name: String)(args: Args): Args = {
     val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
-    History_Arg(newRaffleHistory)
+    HistoryArg(newRaffleHistory)
   }
 
   override protected def newStateForRemoveParticipant(name: String)(args: Args): Args = {
     val newRaffleHistory = newRaffleHistoryForRemoveParticipantFrom(name, args)
-    History_Arg(newRaffleHistory)
+    HistoryArg(newRaffleHistory)
   }
 
   override protected def newStateForSelectWinner(args: Args): Args = {
     val (winner, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
-    History_Arg(newRaffleHistory)
+    HistoryArg(newRaffleHistory)
   }
 
 
   override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
-    getState1(()) flatMap { currentRaffleHistory =>
-      handlerBody(command, History_Arg(currentRaffleHistory))
+    read(()) flatMap {
+      case state : HistoryArg =>
+      handlerBody(command, state)
+      case state =>
+        failure(new IllegalStateException(s"$state is not a 'history' state"))
     }
   }
 
