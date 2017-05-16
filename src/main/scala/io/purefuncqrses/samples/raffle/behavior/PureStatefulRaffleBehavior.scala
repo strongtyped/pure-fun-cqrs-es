@@ -1,11 +1,9 @@
 package io.purefuncqrses.samples.raffle.behavior
 
 import io.purefuncqrses.behavior.Behavior.Handler
-import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features._
 import io.purefuncqrses.features.ops.FeatureOps._
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{HandlerBody, RaffleHistory}
-import shapeless.{HList, HNil}
 
 import scala.language.higherKinds
 
@@ -19,9 +17,9 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
   import implicitOptionalRaffleStateState2F._
 
 
-  override protected def setState(hList: HList): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = hList.getRaffleHistory
-    val newOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
+  override protected def setState(args: Args): M[Unit] = {
+    val newRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val newOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
     setState2 {
       newOptionalRaffleState
     } flatSeq {
@@ -36,7 +34,7 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
       getState2(()) flatMap { currentOptionalRaffleState =>
-        handlerBody(command, currentRaffleHistory :: currentOptionalRaffleState :: HNil)
+        handlerBody(command, History_And_OptionalState_Args(currentRaffleHistory, currentOptionalRaffleState))
       }
     }
   }

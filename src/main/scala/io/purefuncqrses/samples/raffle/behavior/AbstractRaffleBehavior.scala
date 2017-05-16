@@ -10,7 +10,6 @@ import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHis
 import io.purefuncqrses.samples.raffle.commands.{RaffleCommand, _}
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
-import shapeless.{HList, HNil}
 
 import scala.collection.immutable
 import scala.language.higherKinds
@@ -20,7 +19,7 @@ object AbstractRaffleBehavior {
   type RaffleCommands = immutable.Seq[RaffleCommand]
   type RaffleHistory = History[RaffleEvent]
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
-  type HandlerBody[C, M[+ _]] = (C, HList) => M[Unit]
+  type HandlerBody[C, M[+ _]] = (C, Args) => M[Unit]
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
   type RaffleCommandHandlerForEach[M[+ _]] = HandlerForEach[RaffleCommand, M]
 }
@@ -33,27 +32,27 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   import implicitFailureF._
 
 
-  protected def isRaffleCreated(hList: HList): Boolean
+  protected def isRaffleCreated(args: Args): Boolean
 
-  protected def getRaffleId(hList: HList): RaffleId
+  protected def getRaffleId(args: Args): RaffleId
 
-  protected def participants(hList: HList): Seq[String]
+  protected def participants(args: Args): Seq[String]
 
-  protected def hasParticipantBeenAdded(name: String, hList: HList): Boolean
-
-
-  protected def setState(hList: HList): M[Unit]
+  protected def hasParticipantBeenAdded(name: String, args: Args): Boolean
 
 
-  protected def newStateForCreateRaffle(hList: HList): HList
+  protected def setState(args: Args): M[Unit]
 
-  protected def newStateForCreateRaffleAddingParticipant(name: String)(hList: HList): HList
 
-  protected def newStateForAddParticipant(name: String)(hList: HList): HList
+  protected def newStateForCreateRaffle(args: Args): Args
 
-  protected def newStateForRemoveParticipant(name: String)(hList: HList): HList
+  protected def newStateForCreateRaffleAddingParticipant(name: String)(args: Args): Args
 
-  protected def newStateForSelectWinner(hList: HList): HList
+  protected def newStateForAddParticipant(name: String)(args: Args): Args
+
+  protected def newStateForRemoveParticipant(name: String)(args: Args): Args
+
+  protected def newStateForSelectWinner(args: Args): Args
 
   protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M]
 
@@ -64,29 +63,29 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     handlerTemplate[RaffleCommandWithName](commandWithNameHandlerBody)
 
 
-  protected def createRaffleCondition(hList: HList): Boolean =
-    !isRaffleCreated(hList)
+  protected def createRaffleCondition(args: Args): Boolean =
+    !isRaffleCreated(args)
 
-  protected def createRaffleAddingParticipantCondition(hList: HList): Boolean =
-    !isRaffleCreated(hList)
+  protected def createRaffleAddingParticipantCondition(args: Args): Boolean =
+    !isRaffleCreated(args)
 
-  protected def addParticipantCondition(name: String)(hList: HList): Boolean =
-    isRaffleCreated(hList) && !hasParticipantBeenAdded(name, hList)
+  protected def addParticipantCondition(name: String)(args: Args): Boolean =
+    isRaffleCreated(args) && !hasParticipantBeenAdded(name, args)
 
-  protected def removeParticipantCondition(name: String)(hList: HList): Boolean =
-    isRaffleCreated(hList) && hasParticipantBeenAdded(name, hList)
+  protected def removeParticipantCondition(name: String)(args: Args): Boolean =
+    isRaffleCreated(args) && hasParticipantBeenAdded(name, args)
 
-  protected def selectWinnerCondition(hList: HList): Boolean = {
-    isRaffleCreated(hList) && participants(hList).nonEmpty
+  protected def selectWinnerCondition(args: Args): Boolean = {
+    isRaffleCreated(args) && participants(args).nonEmpty
   }
 
 
-  protected def commandHandlerBodyTemplate(condition: => HList => Boolean, newState: HList => HList): HandlerBody[RaffleCommand, M] =
-    (command, hList) => {
-    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
+  protected def commandHandlerBodyTemplate(condition: => Args => Boolean, newState: Args => Args): HandlerBody[RaffleCommand, M] =
+    (command, args) => {
+    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     println(s"\ncurrent raffle history = $currentRaffleHistory")
-    if (condition(hList)) {
-      setState(newState(hList))
+    if (condition(args)) {
+      setState(newState(args))
     } else {
       failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
     }
@@ -96,21 +95,21 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     commandHandlerBodyTemplate(createRaffleCondition, newStateForCreateRaffle)
 
   protected val createRaffleAddingParticipantCommandHandlerBody: HandlerBody[RaffleCommandWithName, M] =
-    (command, hList) => commandHandlerBodyTemplate(createRaffleAddingParticipantCondition, newStateForCreateRaffleAddingParticipant(command.name))(command, hList)
+    (command, args) => commandHandlerBodyTemplate(createRaffleAddingParticipantCondition, newStateForCreateRaffleAddingParticipant(command.name))(command, args)
 
   protected val addParticipantCommandHandlerBody: HandlerBody[RaffleCommandWithName, M] =
-    (command, hList) => commandHandlerBodyTemplate(addParticipantCondition(command.name), newStateForAddParticipant(command.name))(command, hList)
+    (command, args) => commandHandlerBodyTemplate(addParticipantCondition(command.name), newStateForAddParticipant(command.name))(command, args)
 
   protected val removeParticipantCommandHandlerBody: HandlerBody[RaffleCommandWithName, M] =
-    (command, hList) => commandHandlerBodyTemplate(removeParticipantCondition(command.name), newStateForRemoveParticipant(command.name))(command, hList)
+    (command, args) => commandHandlerBodyTemplate(removeParticipantCondition(command.name), newStateForRemoveParticipant(command.name))(command, args)
 
   protected val selectWinnerCommandHandlerBody: HandlerBody[RaffleCommand, M] =
     commandHandlerBodyTemplate(selectWinnerCondition, newStateForSelectWinner)
 
 
-  protected def newRaffleHistoryForCreateRaffleFrom(hList: HList): (RaffleId, RaffleHistory) = {
+  protected def newRaffleHistoryForCreateRaffleFrom(args: Args): (RaffleId, RaffleHistory) = {
     val raffleId = RaffleId.generate()
-    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     val newRaffleHistory = currentRaffleHistory :+ RaffleCreatedEvent(raffleId)
     println(s"new raffle history = $newRaffleHistory")
     (raffleId, newRaffleHistory)
@@ -122,9 +121,9 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     newOptionalRaffleState
   }
 
-  protected def newRaffleHistoryForCreateRaffleAddingParticipantFrom(name: String, hList: HList): (RaffleId, RaffleHistory) = {
+  protected def newRaffleHistoryForCreateRaffleAddingParticipantFrom(name: String, args: Args): (RaffleId, RaffleHistory) = {
     val raffleId = RaffleId.generate()
-    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     val tmpRaffleHistory = currentRaffleHistory :+ RaffleCreatedEvent(raffleId)
     val newRaffleHistory = tmpRaffleHistory :+ ParticipantAddedEvent(name, raffleId)
     println(s"new raffle history = $newRaffleHistory")
@@ -140,15 +139,15 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     newOptionalRaffleState
   }
 
-  protected def newRaffleHistoryForAddParticipantFrom(name: String, hList: HList): RaffleHistory = {
-    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
-    val newRaffleHistory = currentRaffleHistory :+ ParticipantAddedEvent(name, getRaffleId(hList))
+  protected def newRaffleHistoryForAddParticipantFrom(name: String, args: Args): RaffleHistory = {
+    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val newRaffleHistory = currentRaffleHistory :+ ParticipantAddedEvent(name, getRaffleId(args))
     println(s"new raffle history = $newRaffleHistory")
     newRaffleHistory
   }
 
-  protected def newOptionalRaffleStateForAddParticipantFrom(name: String, hList: HList) = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
+  protected def newOptionalRaffleStateForAddParticipantFrom(name: String, args: Args) = {
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
       openState.copy(participants = openState.participants.add(name))
@@ -157,15 +156,15 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     newOptionalRaffleState
   }
 
-  protected def newRaffleHistoryForRemoveParticipantFrom(name: String, hList: HList): RaffleHistory = {
-    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
-    val newRaffleHistory = currentRaffleHistory :+ ParticipantRemovedEvent(name, getRaffleId(hList))
+  protected def newRaffleHistoryForRemoveParticipantFrom(name: String, args: Args): RaffleHistory = {
+    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val newRaffleHistory = currentRaffleHistory :+ ParticipantRemovedEvent(name, getRaffleId(args))
     println(s"new raffle history = $newRaffleHistory")
     newRaffleHistory
   }
 
-  protected def newOptionalRaffleStateForRemoveParticipantFrom(name: String, hList: HList) = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
+  protected def newOptionalRaffleStateForRemoveParticipantFrom(name: String, args: Args) = {
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
       openState.copy(participants = openState.participants.remove(name))
@@ -174,17 +173,17 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
     newOptionalRaffleState
   }
 
-  protected def newRaffleHistoryForSelectWinnerFrom(hList: HList): (String, RaffleHistory) = {
-    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
-    val currentParticipants = participants(hList)
+  protected def newRaffleHistoryForSelectWinnerFrom(args: Args): (String, RaffleHistory) = {
+    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val currentParticipants = participants(args)
     val winner = currentParticipants(Random.nextInt(currentParticipants.size))
-    val newRaffleHistory = currentRaffleHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(hList))
+    val newRaffleHistory = currentRaffleHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(args))
     println(s"new raffle history = $newRaffleHistory")
     (winner, newRaffleHistory)
   }
 
-  protected def newOptionalRaffleStateForSelectWinnerFrom(winner: String, hList: HList): Option[RaffleState] = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
+  protected def newOptionalRaffleStateForSelectWinnerFrom(winner: String, args: Args): Option[RaffleState] = {
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       ClosedState(currentRaffleState.raffleId, winner)
     }

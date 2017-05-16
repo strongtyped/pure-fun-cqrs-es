@@ -1,7 +1,6 @@
 package io.purefuncqrses.behavior
 
 import io.purefuncqrses.features.{FailureF, RunF, State1F, SuccessF}
-import shapeless.HList
 
 import scala.collection.immutable
 import scala.language.higherKinds
