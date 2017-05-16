@@ -1,5 +1,7 @@
 package io.purefuncqrses.util
 
+import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.samples.raffle.behavior.RaffleState
 import shapeless.{HList, HNil}
 
 object Util {
@@ -23,9 +25,9 @@ object Util {
   }
 
   implicit class UnsafeHListOps(hList: HList) {
-    def _1[A]: A = hList.asInstanceOf[shapeless.::[A, HNil]].head
+    def getRaffleHistory: RaffleHistory = hList.asInstanceOf[shapeless.::[RaffleHistory, HNil]].head
 
-    def _2[A, B]: B = hList.asInstanceOf[shapeless.::[A, shapeless.::[B, HNil]]].tail.asInstanceOf[shapeless.::[B, HNil]].head
+    def getOptionalRaffleState: Option[RaffleState] = hList.asInstanceOf[shapeless.::[RaffleHistory, shapeless.::[Option[RaffleState], HNil]]].tail.head
   }
 
 }

@@ -15,22 +15,22 @@ abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : St
 
 
   override protected def isRaffleCreated(hList: HList): Boolean = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     currentOptionalRaffleState.isDefined
   }
 
   override protected def getRaffleId(hList: HList): RaffleId = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     currentOptionalRaffleState.get.raffleId
   }
 
   override protected def participants(hList: HList): Seq[String] = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     currentOptionalRaffleState.get.asInstanceOf[OpenState].participants
   }
 
   override protected def hasParticipantBeenAdded(name: String, hList: HList): Boolean = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     currentOptionalRaffleState.get.asInstanceOf[OpenState].participants.contains(name)
   }
 

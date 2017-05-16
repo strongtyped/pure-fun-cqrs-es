@@ -21,17 +21,17 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
 
   override protected def isRaffleCreated(hList: HList): Boolean = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     currentRaffleHistory.nonEmpty
   }
 
   override protected def getRaffleId(hList: HList): RaffleId = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     currentRaffleHistory.head.asInstanceOf[RaffleCreatedEvent].raffleId
   }
 
   override protected def participants(hList: HList): Seq[String] = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     currentRaffleHistory.tail.foldLeft(List[String]()) { (participants, raffleEvent) =>
       raffleEvent match {
         case ParticipantAddedEvent(name, _) =>
@@ -45,7 +45,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
   }
 
   override protected def hasParticipantBeenAdded(name: String, hList: HList): Boolean = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     val numberOfTimesAdded =
       currentRaffleHistory.count(raffleEvent => raffleEvent.isInstanceOf[ParticipantAddedEvent] && raffleEvent.asInstanceOf[ParticipantAddedEvent].name == name)
     val numberOfTimesRemoved =
@@ -55,7 +55,7 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
 
   override protected def setState(hList: HList): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = hList._1
+    val newRaffleHistory: RaffleHistory = hList.getRaffleHistory
     setState1 {
       newRaffleHistory
     }

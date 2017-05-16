@@ -18,8 +18,8 @@ class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistor
 
 
   override protected def setState(hList: HList): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = hList._1
-    val newOptionalRaffleState: Option[RaffleState] = hList._2
+    val newRaffleHistory: RaffleHistory = hList.getRaffleHistory
+    val newOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     this.currentOptionalRaffleState = newOptionalRaffleState
     setState1 {
       newRaffleHistory

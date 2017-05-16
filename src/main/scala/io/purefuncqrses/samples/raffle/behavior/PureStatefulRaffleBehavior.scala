@@ -20,8 +20,8 @@ class PureStatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHi
 
 
   override protected def setState(hList: HList): M[Unit] = {
-    val newRaffleHistory: RaffleHistory = hList._1
-    val newOptionalRaffleState: Option[RaffleState] = hList._2
+    val newRaffleHistory: RaffleHistory = hList.getRaffleHistory
+    val newOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     setState2 {
       newOptionalRaffleState
     } flatSeq {

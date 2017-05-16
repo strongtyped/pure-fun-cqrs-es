@@ -83,7 +83,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   protected def commandHandlerBodyTemplate(condition: => HList => Boolean, newState: HList => HList): HandlerBody[RaffleCommand, M] =
     (command, hList) => {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     println(s"\ncurrent raffle history = $currentRaffleHistory")
     if (condition(hList)) {
       setState(newState(hList))
@@ -110,7 +110,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   protected def newRaffleHistoryForCreateRaffleFrom(hList: HList): (RaffleId, RaffleHistory) = {
     val raffleId = RaffleId.generate()
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     val newRaffleHistory = currentRaffleHistory :+ RaffleCreatedEvent(raffleId)
     println(s"new raffle history = $newRaffleHistory")
     (raffleId, newRaffleHistory)
@@ -124,7 +124,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
 
   protected def newRaffleHistoryForCreateRaffleAddingParticipantFrom(name: String, hList: HList): (RaffleId, RaffleHistory) = {
     val raffleId = RaffleId.generate()
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     val tmpRaffleHistory = currentRaffleHistory :+ RaffleCreatedEvent(raffleId)
     val newRaffleHistory = tmpRaffleHistory :+ ParticipantAddedEvent(name, raffleId)
     println(s"new raffle history = $newRaffleHistory")
@@ -141,14 +141,14 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   }
 
   protected def newRaffleHistoryForAddParticipantFrom(name: String, hList: HList): RaffleHistory = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     val newRaffleHistory = currentRaffleHistory :+ ParticipantAddedEvent(name, getRaffleId(hList))
     println(s"new raffle history = $newRaffleHistory")
     newRaffleHistory
   }
 
   protected def newOptionalRaffleStateForAddParticipantFrom(name: String, hList: HList) = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
       openState.copy(participants = openState.participants.add(name))
@@ -158,14 +158,14 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   }
 
   protected def newRaffleHistoryForRemoveParticipantFrom(name: String, hList: HList): RaffleHistory = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     val newRaffleHistory = currentRaffleHistory :+ ParticipantRemovedEvent(name, getRaffleId(hList))
     println(s"new raffle history = $newRaffleHistory")
     newRaffleHistory
   }
 
   protected def newOptionalRaffleStateForRemoveParticipantFrom(name: String, hList: HList) = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
       openState.copy(participants = openState.participants.remove(name))
@@ -175,7 +175,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   }
 
   protected def newRaffleHistoryForSelectWinnerFrom(hList: HList): (String, RaffleHistory) = {
-    val currentRaffleHistory: RaffleHistory = hList._1
+    val currentRaffleHistory: RaffleHistory = hList.getRaffleHistory
     val currentParticipants = participants(hList)
     val winner = currentParticipants(Random.nextInt(currentParticipants.size))
     val newRaffleHistory = currentRaffleHistory :+ WinnerSelectedEvent(winner, OffsetDateTime.now, getRaffleId(hList))
@@ -184,7 +184,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Raf
   }
 
   protected def newOptionalRaffleStateForSelectWinnerFrom(winner: String, hList: HList): Option[RaffleState] = {
-    val currentOptionalRaffleState: Option[RaffleState] = hList._2
+    val currentOptionalRaffleState: Option[RaffleState] = hList.getOptionalRaffleState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       ClosedState(currentRaffleState.raffleId, winner)
     }
