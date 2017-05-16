@@ -1,12 +1,15 @@
 package io.purefuncqrses.behavior
 
-import io.purefuncqrses.features.{FailureF, RunF, State1F, SuccessF}
+import io.purefuncqrses.features.{SuccessF, FailureF, State1F}
 import io.purefuncqrses.features.ops.FeatureOps._
+import io.purefuncqrses.samples.raffle.behavior.Args
 
 import scala.collection.immutable
 import scala.language.higherKinds
 
 object Behavior {
+
+  type State = Args
 
   type History[+E] = immutable.Seq[E]
 
@@ -26,7 +29,7 @@ object Behavior {
 
 import Behavior._
 
-abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[History[E], ?[_]]] {
+abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : State1F[State, ?[_]]] {
 
   private val implicitSuccessF = implicitly[SuccessF[M]]
 

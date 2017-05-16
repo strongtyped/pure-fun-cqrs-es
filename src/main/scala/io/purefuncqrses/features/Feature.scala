@@ -68,8 +68,8 @@ trait NestStateF[S, M[+ _]] {
 
 trait State1F[S1, M[+ _]] {
 
-  val setState1: S1 => M[Unit]
-  val getState1: Unit => M[S1]
+  val setState: S1 => M[Unit]
+  val getState: Unit => M[S1]
 
 }
 

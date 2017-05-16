@@ -1,15 +1,16 @@
 package io.purefuncqrses.samples.raffle.behavior
 
+import io.purefuncqrses.behavior.Behavior.State
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
 import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.language.higherKinds
 
-abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]]]
+abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[State,?[_]]]
   extends AbstractRaffleBehavior[M] {
 
-  protected val implicitRaffleHistoryState1F = implicitly[State1F[RaffleHistory, M]]
+  protected val implicitRaffleHistoryState1F = implicitly[State1F[State, M]]
 
 
   override protected def isRaffleCreated(args: Args): Boolean = {

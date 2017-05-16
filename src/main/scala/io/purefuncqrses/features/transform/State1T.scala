@@ -41,12 +41,12 @@ class State1T[S1, M[+ _] : SuccessF : FailureF : RunF]
           pf_t2sma(throwable)(s)
       }
 
-  override val setState1: S1 => S1 => M[(S1, Unit)] =
+  override val setState: S1 => S1 => M[(S1, Unit)] =
     s =>
       _ =>
         implicitSuccessF.success((s, ()))
 
-  override val getState1: Unit => S1 => M[(S1, S1)] =
+  override val getState: Unit => S1 => M[(S1, S1)] =
     _ =>
       s =>
         implicitSuccessF.success((s, s))
@@ -65,10 +65,10 @@ class State2T[S1, S2, M[+ _] : SuccessF : FailureF : State1F[S2, ?[_]] : NestSta
     with State2F[S2, λ[`+A` => State1[S1, M, A]]] {
 
   override val setState2: State2[S1, S2, M, Unit] =
-    implicitly[NestStateF[S1, M]].nestState(implicitly[State1F[S2, M]].setState1)
+    implicitly[NestStateF[S1, M]].nestState(implicitly[State1F[S2, M]].setState)
 
   override val getState2: State2[S1, Unit, M, S2] =
-    implicitly[NestStateF[S1, M]].nestState(implicitly[State1F[S2, M]].getState1)
+    implicitly[NestStateF[S1, M]].nestState(implicitly[State1F[S2, M]].getState)
 
 }
 

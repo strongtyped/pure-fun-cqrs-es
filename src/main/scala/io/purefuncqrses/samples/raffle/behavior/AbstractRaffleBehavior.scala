@@ -26,7 +26,7 @@ object AbstractRaffleBehavior {
 
 import AbstractRaffleBehavior._
 
-abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]]]
+abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[State, ?[_]]]
   extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
 
   import implicitFailureF._

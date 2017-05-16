@@ -1,9 +1,8 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.behavior.Behavior.Handler
+import io.purefuncqrses.behavior.Behavior.{Handler, State}
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
-
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
 import io.purefuncqrses.features.ops.FeatureOps._
@@ -11,12 +10,12 @@ import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{HandlerB
 
 import scala.language.higherKinds
 
-class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHistory, ?[_]]]
+class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[State, ?[_]]]
   extends AbstractRaffleBehavior[M] {
 
   import implicitFailureF._
 
-  private val implicitRaffleHistoryState1F = implicitly[State1F[RaffleHistory, M]]
+  private val implicitRaffleHistoryState1F = implicitly[State1F[State, M]]
 
   import implicitRaffleHistoryState1F._
 
@@ -58,8 +57,8 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
   override protected def setState(args: Args): M[Unit] = args match {
     case History_Arg(_) =>
       val newRaffleHistory: RaffleHistory = args.getRaffleHistory
-      setState1 {
-        newRaffleHistory
+      setState {
+        History_Arg(newRaffleHistory)
       }
     case _ =>
       failure(new IllegalStateException(s"$args is not a history argument"))
@@ -94,8 +93,11 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
   override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
-    getState1(()) flatMap { currentRaffleHistory =>
+    getState(()) flatMap {
+      case History_Arg(currentRaffleHistory) =>
       handlerBody(command, History_Arg(currentRaffleHistory))
+      case args =>
+        failure(new IllegalStateException(s"$args is not a history argument"))
     }
   }
 
