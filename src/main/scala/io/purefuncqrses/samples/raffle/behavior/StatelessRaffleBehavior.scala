@@ -63,34 +63,34 @@ class StatelessRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[RaffleHisto
 
   override protected def newStateForCreateRaffle(args: Args): Args = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(args)
-    History_Args(newRaffleHistory)
+    History_Arg(newRaffleHistory)
   }
 
   override protected def newStateForCreateRaffleAddingParticipant(name: String)(args: Args): Args = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, args)
-    History_Args(newRaffleHistory)
+    History_Arg(newRaffleHistory)
   }
 
   override protected def newStateForAddParticipant(name: String)(args: Args): Args = {
     val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
-    History_Args(newRaffleHistory)
+    History_Arg(newRaffleHistory)
   }
 
   override protected def newStateForRemoveParticipant(name: String)(args: Args): Args = {
     val newRaffleHistory = newRaffleHistoryForRemoveParticipantFrom(name, args)
-    History_Args(newRaffleHistory)
+    History_Arg(newRaffleHistory)
   }
 
   override protected def newStateForSelectWinner(args: Args): Args = {
     val (winner, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
-    History_Args(newRaffleHistory)
+    History_Arg(newRaffleHistory)
   }
 
 
   override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     getState1(()) flatMap { currentRaffleHistory =>
-      handlerBody(command, History_Args(currentRaffleHistory))
+      handlerBody(command, History_Arg(currentRaffleHistory))
     }
   }
 

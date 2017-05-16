@@ -7,7 +7,7 @@ sealed trait Args {
   def getOptionalRaffleState: Option[RaffleState]
 }
 
-case class History_Args(raffleHistory: RaffleHistory) extends Args {
+case class History_Arg(raffleHistory: RaffleHistory) extends Args {
   override def getRaffleHistory: RaffleHistory = raffleHistory
   override def getOptionalRaffleState: Option[RaffleState] =
     sys.error("Cannot extract optional raffle state from history argument")
