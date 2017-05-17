@@ -1,11 +1,22 @@
 package io.purefuncqrses.samples.raffle
 
+import io.purefuncqrses.behavior.{Args, HasHistory, HistoryAndOptionalAggregateStateArgs, HistoryArg}
+import io.purefuncqrses.samples.raffle.events.RaffleEvent
+
 package object behavior {
 
-  type State = Args
+  type HasRaffleHistory = HasHistory[RaffleEvent]
 
-  type HistoryState = HistoryArg
+  type RaffleArgs = Args[RaffleEvent, RaffleState]
 
-  type HistoryAndOptionalStateState = HistoryAndOptionalStateArgs
+  type RaffleHistoryArg = HistoryArg[RaffleEvent, RaffleState]
+
+  type RaffleHistoryAndOptionalRaffleStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState]
+
+  type State = RaffleArgs
+
+  type HistoryState = RaffleHistoryArg
+
+  type HistoryAndOptionalStateState = RaffleHistoryAndOptionalRaffleStateArgs
 
 }

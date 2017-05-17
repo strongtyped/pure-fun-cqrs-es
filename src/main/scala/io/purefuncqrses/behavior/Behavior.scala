@@ -30,7 +30,7 @@ object Behavior {
 
 import Behavior._
 
-abstract class Behavior[A, S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
+abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
 
   private val implicitSuccessF = implicitly[SuccessF[M]]
 
@@ -46,18 +46,24 @@ abstract class Behavior[A, S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, 
 
 
   protected def setState(args: A): M[Unit] = {
-    val newState: S = args.asInstanceOf[S] // default A = S
+    val state: S = args.asInstanceOf[S] // default A = S
     write {
-      newState
+      state
     }
   }
 
-
-  protected def handlerTemplate[Cmd](handlerBody: HandlerBody[A, Cmd, M]): Handler[Cmd, M] = command => {
+  protected def handlerTemplate[Cmd](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
       case state =>
-        handlerBody(command, state.asInstanceOf[A]) // default A = S
+        val args: A = state.asInstanceOf[A] // default A = S
+      val currentHistory: History[E] = args.getHistory
+        println(s"\ncurrent history = $currentHistory")
+        if (condition(args)) {
+          setState(newArgs(args))
+        } else {
+          failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
+        }
     }
   }
 

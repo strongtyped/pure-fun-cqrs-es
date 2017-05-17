@@ -27,7 +27,7 @@ object RaffleBehavior {
 
 import RaffleBehavior._
 
-abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]]
+abstract class RaffleBehavior[A <: RaffleArgs, S <: State, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]]
   extends Behavior[A, S, RaffleCommand, RaffleEvent, RaffleId, M] {
 
   import implicitFailureF._
@@ -62,10 +62,10 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   // derived predicates
   //
   protected def createRaffleCondition(args: A): Boolean =
-    !isRaffleCreated(args)
+  !isRaffleCreated(args)
 
   protected def createRaffleAddingParticipantCondition(args: A): Boolean =
-  !isRaffleCreated(args)
+    !isRaffleCreated(args)
 
   protected def addParticipantCondition(name: String)(args: A): Boolean =
     isRaffleCreated(args) && !hasParticipantBeenAdded(name, args)
@@ -83,7 +83,7 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   //
   protected def newRaffleHistoryForCreateRaffleFrom(args: A): (RaffleId, RaffleHistory) = {
     val raffleId = RaffleId.generate()
-    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getHistory
     val newRaffleHistory = currentRaffleHistory :+ RaffleCreatedEvent(raffleId)
     println(s"new raffle history = $newRaffleHistory")
     (raffleId, newRaffleHistory)
@@ -97,7 +97,7 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
 
   protected def newRaffleHistoryForCreateRaffleAddingParticipantFrom(name: String, args: A): (RaffleId, RaffleHistory) = {
     val raffleId = RaffleId.generate()
-    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getHistory
     val tmpRaffleHistory = currentRaffleHistory :+ RaffleCreatedEvent(raffleId)
     val newRaffleHistory = tmpRaffleHistory :+ ParticipantAddedEvent(name, raffleId)
     println(s"new raffle history = $newRaffleHistory")
@@ -114,14 +114,14 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   }
 
   protected def newRaffleHistoryForAddParticipantFrom(name: String, args: A): RaffleHistory = {
-    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getHistory
     val newRaffleHistory = currentRaffleHistory :+ ParticipantAddedEvent(name, getRaffleId(args))
     println(s"new raffle history = $newRaffleHistory")
     newRaffleHistory
   }
 
   protected def newOptionalRaffleStateForAddParticipantFrom(name: String, args: A): Option[OpenState] = {
-    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
       openState.copy(participants = openState.participants.add(name))
@@ -131,14 +131,14 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   }
 
   protected def newRaffleHistoryForRemoveParticipantFrom(name: String, args: A): RaffleHistory = {
-    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getHistory
     val newRaffleHistory = currentRaffleHistory :+ ParticipantRemovedEvent(name, getRaffleId(args))
     println(s"new raffle history = $newRaffleHistory")
     newRaffleHistory
   }
 
   protected def newOptionalRaffleStateForRemoveParticipantFrom(name: String, args: A): Option[OpenState] = {
-    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       val openState = currentRaffleState.asInstanceOf[OpenState]
       openState.copy(participants = openState.participants.remove(name))
@@ -148,7 +148,7 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   }
 
   protected def newRaffleHistoryForSelectWinnerFrom(args: A): (String, RaffleHistory) = {
-    val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val currentRaffleHistory: RaffleHistory = args.getHistory
     val raffleWinner = winner(args)
     val newRaffleHistory = currentRaffleHistory :+ WinnerSelectedEvent(raffleWinner, OffsetDateTime.now, getRaffleId(args))
     println(s"new raffle history = $newRaffleHistory")
@@ -156,7 +156,7 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   }
 
   protected def newOptionalRaffleStateForSelectWinnerFrom(winner: String, args: A): Option[RaffleState] = {
-    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
     val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
       ClosedState(currentRaffleState.raffleId, winner)
     }
@@ -183,70 +183,29 @@ abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : Failure
   //
   private lazy val createRaffleCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleCommand.type =>
-      handlerTemplate[RaffleCommand] { (command, args) =>
-        val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
-        println(s"\ncurrent raffle history = $currentRaffleHistory")
-        if (createRaffleCondition(args)) {
-          setState(newArgsForCreateRaffle(args))
-        } else {
-          failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
-        }
-      } (command)
+      handlerTemplate[RaffleCommand](createRaffleCondition, newArgsForCreateRaffle)(command)
   }
 
   private lazy val createRaffleAddingParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleAddingParticipantCommand =>
-      handlerTemplate[RaffleCommandWithName] { (command, args) =>
-        val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
-        println(s"\ncurrent raffle history = $currentRaffleHistory")
-        if (createRaffleAddingParticipantCondition(args)) {
-          setState(newArgsForCreateRaffleAddingParticipant(command.name)(args))
-        } else {
-          failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
-        }
-      } (command)
+      handlerTemplate[RaffleCommandWithName](createRaffleAddingParticipantCondition, newArgsForCreateRaffleAddingParticipant(command.name))(command)
   }
 
   private lazy val addParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: AddParticipantCommand =>
-      handlerTemplate[RaffleCommandWithName] { (command, args) =>
-        val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
-        println(s"\ncurrent raffle history = $currentRaffleHistory")
-        if (addParticipantCondition(command.name)(args)) {
-          setState(newArgsForAddParticipant(command.name)(args))
-        } else {
-          failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
-        }
-      } (command)
+      handlerTemplate[RaffleCommandWithName](addParticipantCondition(command.name), newArgsForAddParticipant(command.name))(command)
   }
 
   private lazy val removeParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: RemoveParticipantCommand =>
-      handlerTemplate[RaffleCommandWithName] { (command, args) =>
-        val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
-        println(s"\ncurrent raffle history = $currentRaffleHistory")
-        if (removeParticipantCondition(command.name)(args)) {
-          setState(newArgsForRemoveParticipant(command.name)(args))
-        } else {
-          failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
-        }
-      } (command)
+      handlerTemplate[RaffleCommandWithName](removeParticipantCondition(command.name), newArgsForRemoveParticipant(command.name))(command)
   }
 
 
   private lazy val selectWinnerCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: SelectWinnerCommand.type =>
-      handlerTemplate[RaffleCommand] { (command, args) =>
-        val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
-        println(s"\ncurrent raffle history = $currentRaffleHistory")
-        if (selectWinnerCondition(args)) {
-          setState(newArgsForSelectWinner(args))
-        } else {
-          failure(new IllegalStateException(s"$command not applicable with history $currentRaffleHistory"))
-        }
-      } (command)
+      handlerTemplate[RaffleCommand](selectWinnerCondition, newArgsForSelectWinner)(command)
   }
-
 
 
   override protected val partialHandlers: PartialRaffleCommandHandlers[M] =

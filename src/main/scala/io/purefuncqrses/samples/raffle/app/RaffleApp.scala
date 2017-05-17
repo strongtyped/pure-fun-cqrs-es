@@ -2,7 +2,7 @@ package io.purefuncqrses.samples.raffle.app
 
 import io.purefuncqrses.behavior.Behavior
 import io.purefuncqrses.features.{FailureF, RunF, StateF, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.{Args, State}
+import io.purefuncqrses.samples.raffle.behavior.{RaffleArgs, State}
 import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleCommands
 import io.purefuncqrses.samples.raffle.commands._
 import io.purefuncqrses.behavior.Behavior.seq
@@ -11,7 +11,7 @@ import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.language.higherKinds
 
-abstract class RaffleApp[A <: Args, S <: State, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]] : RunF] {
+abstract class RaffleApp[A <: RaffleArgs, S <: State, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]] : RunF] {
 
   protected val implicitRunF: RunF[M] = implicitly[RunF[M]]
 
