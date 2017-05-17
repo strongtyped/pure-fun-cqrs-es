@@ -20,7 +20,7 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryS
   var currentOptionalRaffleState: Option[RaffleState] = None
 
 
-  override protected def setState(args: RaffleHistoryAndOptionalRaffleStateArgs): M[Unit] = {
+  override protected def setStateFromArgs(args: RaffleHistoryAndOptionalRaffleStateArgs): M[Unit] = {
     val newRaffleHistory: RaffleHistory = args.getHistory
     val newOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
     this.currentOptionalRaffleState = newOptionalRaffleState
@@ -39,7 +39,7 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryS
         val currentHistory: RaffleHistory = args.getHistory
         println(s"\ncurrent history = $currentHistory")
         if (condition(args)) {
-          setState(newArgs(args))
+          setStateFromArgs(newArgs(args))
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }

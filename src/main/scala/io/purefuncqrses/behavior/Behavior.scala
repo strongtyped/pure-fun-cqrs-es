@@ -45,7 +45,7 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
   import implicitStateF._
 
 
-  protected def setState(args: A): M[Unit] = {
+  protected def setStateFromArgs(args: A): M[Unit] = {
     val state: S = args.asInstanceOf[S] // default A = S
     write {
       state
@@ -60,7 +60,7 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
       val currentHistory: History[E] = args.getHistory
         println(s"\ncurrent history = $currentHistory")
         if (condition(args)) {
-          setState(newArgs(args))
+          setStateFromArgs(newArgs(args))
         } else {
           failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
         }
