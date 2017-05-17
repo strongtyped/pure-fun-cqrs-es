@@ -15,19 +15,19 @@ sealed trait Args[E, AS] extends HasHistory[E] {
 
 }
 
-case class HistoryArg[E, AS](raffleHistory: History[E]) extends Args[E, AS] {
+case class HistoryArg[E, AS](history: History[E]) extends Args[E, AS] {
 
-  override def getHistory: History[E] = raffleHistory
+  override def getHistory: History[E] = history
 
   override def getOptionalAggregateState: Option[AS] =
     sys.error("Cannot extract optional aggregate state from history argument")
 
 }
 
-case class HistoryAndOptionalAggregateStateArgs[E, AS](raffleHistory: History[E], optionalRaffleState: Option[AS]) extends Args[E, AS] {
+case class HistoryAndOptionalAggregateStateArgs[E, AS](history: History[E], optionalAggregateState: Option[AS]) extends Args[E, AS] {
 
-  override def getHistory: History[E] = raffleHistory
+  override def getHistory: History[E] = history
 
-  override def getOptionalAggregateState: Option[AS] = optionalRaffleState
+  override def getOptionalAggregateState: Option[AS] = optionalAggregateState
 
 }

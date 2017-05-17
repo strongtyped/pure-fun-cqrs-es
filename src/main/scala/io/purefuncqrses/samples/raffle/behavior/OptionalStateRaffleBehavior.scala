@@ -35,7 +35,7 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryS
     println(s"\ncase $command =>")
     read(()) flatMap {
       case state =>
-        val args: RaffleHistoryAndOptionalRaffleStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](state.raffleHistory, currentOptionalRaffleState)
+        val args: RaffleHistoryAndOptionalRaffleStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](state.history, currentOptionalRaffleState)
         val currentHistory: RaffleHistory = args.getHistory
         println(s"\ncurrent history = $currentHistory")
         if (condition(args)) {
