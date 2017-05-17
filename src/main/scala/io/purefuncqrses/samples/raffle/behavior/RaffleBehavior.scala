@@ -28,7 +28,7 @@ object RaffleBehavior {
 import RaffleBehavior._
 
 abstract class RaffleBehavior[A <: Args, S <: State, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]]
-  extends Behavior[A, S, RaffleCommand, RaffleEvent, RaffleId, M] {
+  extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
 
   import implicitFailureF._
 
