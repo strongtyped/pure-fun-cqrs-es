@@ -20,7 +20,7 @@ case class HistoryArg[E, AS](raffleHistory: History[E]) extends Args[E, AS] {
   override def getHistory: History[E] = raffleHistory
 
   override def getOptionalAggregateState: Option[AS] =
-    sys.error("Cannot extract optional raffle state from history argument")
+    sys.error("Cannot extract optional aggregate state from history argument")
 
 }
 
