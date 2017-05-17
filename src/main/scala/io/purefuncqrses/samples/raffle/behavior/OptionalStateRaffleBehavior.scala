@@ -15,7 +15,9 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryS
 
   var currentOptionalRaffleState: Option[RaffleState] = None
 
-
+  //
+  // templates
+  //
   override protected def setState(args: HistoryAndOptionalStateArgs): M[Unit] = {
     val newRaffleHistory: RaffleHistory = args.getRaffleHistory
     val newOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
