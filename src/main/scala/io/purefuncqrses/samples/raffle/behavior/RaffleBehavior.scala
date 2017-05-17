@@ -6,7 +6,7 @@ import io.purefuncqrses.util.Util._
 import io.purefuncqrses.behavior.Behavior
 import io.purefuncqrses.behavior.Behavior._
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands.{RaffleCommand, _}
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
@@ -16,7 +16,7 @@ import scala.util.Random
 
 import scala.language.higherKinds
 
-object AbstractRaffleBehavior {
+object RaffleBehavior {
   type RaffleCommands = immutable.Seq[RaffleCommand]
   type RaffleHistory = History[RaffleEvent]
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
@@ -25,9 +25,9 @@ object AbstractRaffleBehavior {
   type RaffleCommandHandlerForAll[M[+ _]] = HandlerForAll[RaffleCommand, M]
 }
 
-import AbstractRaffleBehavior._
+import RaffleBehavior._
 
-abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
+abstract class RaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
   extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
 
   import implicitFailureF._

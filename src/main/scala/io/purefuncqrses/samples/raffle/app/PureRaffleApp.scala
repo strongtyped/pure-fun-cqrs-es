@@ -6,15 +6,13 @@ import io.purefuncqrses.samples.raffle.behavior._
 
 import scala.language.higherKinds
 
-class HistoryArgRaffleApp[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]] : RunF]
-  extends AbstractRaffleApp[M] {
+class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]] : RunF]
+  extends RaffleApp[M] {
 
   import implicitRunF._
 
 
-  override protected val raffleBehavior = new StatelessRaffleBehavior[M]
-
-//  override protected val raffleBehavior: Behavior[RaffleCommand, RaffleEvent, RaffleId, M] = new StatefulRaffleBehavior[M]
+  override protected val raffleBehavior = new PureRaffleBehavior[M]
 
   override protected val input = (HistoryArg(empty), ()).asInstanceOf[Input]
 

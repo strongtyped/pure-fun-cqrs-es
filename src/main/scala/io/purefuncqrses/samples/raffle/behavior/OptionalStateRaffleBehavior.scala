@@ -3,12 +3,12 @@ package io.purefuncqrses.samples.raffle.behavior
 import io.purefuncqrses.behavior.Behavior.Handler
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.features.ops.FeatureOps._
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.{HandlerBody, RaffleHistory}
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.{HandlerBody, RaffleHistory}
 
 import scala.language.higherKinds
 
-class StatefulRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
-  extends AbstractOptimizedRaffleBehavior[M] {
+class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
+  extends OptimizedRaffleBehavior[M] {
 
   import implicitFailureF._
 

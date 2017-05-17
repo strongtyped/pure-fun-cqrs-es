@@ -1,6 +1,6 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 
 sealed trait Args {
   def getRaffleHistory: RaffleHistory

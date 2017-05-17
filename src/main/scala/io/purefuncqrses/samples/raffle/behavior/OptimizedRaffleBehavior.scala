@@ -5,8 +5,8 @@ import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.language.higherKinds
 
-abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
-  extends AbstractRaffleBehavior[M] {
+abstract class OptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
+  extends RaffleBehavior[M] {
 
   protected val implicitStateF = implicitly[StateF[State, M]]
 
