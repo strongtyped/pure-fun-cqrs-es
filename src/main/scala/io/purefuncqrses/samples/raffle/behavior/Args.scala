@@ -1,6 +1,6 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 
 sealed trait Args {
   def getRaffleHistory: RaffleHistory
@@ -8,14 +8,14 @@ sealed trait Args {
   def getOptionalRaffleState: Option[RaffleState]
 }
 
-case class History_Arg(raffleHistory: RaffleHistory) extends Args {
+case class HistoryArg(raffleHistory: RaffleHistory) extends Args {
   override def getRaffleHistory: RaffleHistory = raffleHistory
 
   override def getOptionalRaffleState: Option[RaffleState] =
     sys.error("Cannot extract optional raffle state from history argument")
 }
 
-case class History_And_OptionalState_Args(raffleHistory: RaffleHistory, optionalRaffleState: Option[RaffleState]) extends Args {
+case class HistoryAndOptionalStateArgs(raffleHistory: RaffleHistory, optionalRaffleState: Option[RaffleState]) extends Args {
   override def getRaffleHistory: RaffleHistory = raffleHistory
 
   override def getOptionalRaffleState: Option[RaffleState] = optionalRaffleState

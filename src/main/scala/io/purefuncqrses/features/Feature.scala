@@ -1,7 +1,5 @@
 package io.purefuncqrses.features
 
-import io.purefuncqrses.State1
-
 import scala.collection.immutable
 import scala.language.higherKinds
 
@@ -14,8 +12,6 @@ trait SuccessF[M[+ _]] {
   //
   // default implementations
   //
-
-  val done: M[Unit] = success(())
 
   def map[A, B](ma: M[A])(f_a2b: A => B): M[B] =
     flatMap(ma) { a =>
@@ -42,12 +38,6 @@ trait SuccessF[M[+ _]] {
       }
     }
 
-  def forEach[A](as: immutable.Seq[A]): (A => M[Unit]) => M[Unit] =
-    f_a2mu => map(traverse(f_a2mu)(as))(_ => ())
-
-  def sequence[A]: immutable.Seq[M[A]] => M[immutable.Seq[A]] =
-    traverse[M[A], A](identity)
-
 }
 
 trait FailureF[M[+ _]] {
@@ -60,34 +50,12 @@ trait FailureF[M[+ _]] {
 
 }
 
-trait NestStateF[S, M[+ _]] {
+trait StateF[S1, M[+ _]] {
 
-  def nestState[A, B](f_a2mb: A => M[B]): A => State1[S, M, B]
-
-}
-
-trait State1F[S1, M[+ _]] {
-
-  val setState: S1 => M[Unit]
-  val getState: Unit => M[S1]
+  val write: S1 => M[Unit]
+  val read: Unit => M[S1]
 
 }
-
-trait State2F[S2, M[+ _]] {
-
-  val setState2: S2 => M[Unit]
-  val getState2: Unit => M[S2]
-
-}
-
-trait State3F[S3, M[+ _]] {
-
-  val setState3: S3 => M[Unit]
-  val getState3: Unit => M[S3]
-
-}
-
-// and so on ...
 
 trait RunF[M[+ _]] {
 

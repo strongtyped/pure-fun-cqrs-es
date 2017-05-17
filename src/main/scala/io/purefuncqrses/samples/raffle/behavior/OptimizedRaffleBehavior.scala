@@ -1,16 +1,14 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.behavior.Behavior.State
-import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.language.higherKinds
 
-abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[State,?[_]]]
-  extends AbstractRaffleBehavior[M] {
+abstract class OptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
+  extends RaffleBehavior[M] {
 
-  protected val implicitRaffleHistoryState1F = implicitly[State1F[State, M]]
+  protected val implicitStateF = implicitly[StateF[State, M]]
 
 
   override protected def isRaffleCreated(args: Args): Boolean = {
@@ -37,31 +35,31 @@ abstract class AbstractOptimizedRaffleBehavior[M[+ _] : SuccessF : FailureF : St
   override protected def newStateForCreateRaffle(args: Args): Args = {
     val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(args)
     val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleFrom(raffleId)
-    History_And_OptionalState_Args(newRaffleHistory, newOptionalRaffleState)
+    HistoryAndOptionalStateArgs(newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newStateForCreateRaffleAddingParticipant(name: String)(args: Args): Args = {
     val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, args)
     val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleAddingParticipantFrom(name, raffleId)
-    History_And_OptionalState_Args(newRaffleHistory, newOptionalRaffleState)
+    HistoryAndOptionalStateArgs(newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newStateForAddParticipant(name: String)(args: Args): Args = {
-    val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name: String, args: Args)
+    val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
     val newOptionalRaffleState = newOptionalRaffleStateForAddParticipantFrom(name, args)
-    History_And_OptionalState_Args(newRaffleHistory, newOptionalRaffleState)
+    HistoryAndOptionalStateArgs(newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newStateForRemoveParticipant(name: String)(args: Args): Args = {
     val newRaffleHistory = newRaffleHistoryForRemoveParticipantFrom(name, args)
     val newOptionalRaffleState = newOptionalRaffleStateForRemoveParticipantFrom(name, args)
-    History_And_OptionalState_Args(newRaffleHistory, newOptionalRaffleState)
+    HistoryAndOptionalStateArgs(newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newStateForSelectWinner(args: Args): Args = {
     val (winner, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
     val newOptionalRaffleState = newOptionalRaffleStateForSelectWinnerFrom(winner, args)
-    History_And_OptionalState_Args(newRaffleHistory, newOptionalRaffleState)
+    HistoryAndOptionalStateArgs(newRaffleHistory, newOptionalRaffleState)
   }
 
 }

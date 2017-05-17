@@ -5,28 +5,29 @@ import java.time.OffsetDateTime
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.behavior.Behavior
 import io.purefuncqrses.behavior.Behavior._
-import io.purefuncqrses.features.{FailureF, State1F, SuccessF}
-import io.purefuncqrses.samples.raffle.behavior.AbstractRaffleBehavior.RaffleHistory
+import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.commands.{RaffleCommand, _}
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.collection.immutable
-import scala.language.higherKinds
 import scala.util.Random
 
-object AbstractRaffleBehavior {
+import scala.language.higherKinds
+
+object RaffleBehavior {
   type RaffleCommands = immutable.Seq[RaffleCommand]
   type RaffleHistory = History[RaffleEvent]
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
   type HandlerBody[C, M[+ _]] = (C, Args) => M[Unit]
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
-  type RaffleCommandHandlerForEach[M[+ _]] = HandlerForEach[RaffleCommand, M]
+  type RaffleCommandHandlerForAll[M[+ _]] = HandlerForAll[RaffleCommand, M]
 }
 
-import AbstractRaffleBehavior._
+import RaffleBehavior._
 
-abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[State, ?[_]]]
+abstract class RaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
   extends Behavior[RaffleCommand, RaffleEvent, RaffleId, M] {
 
   import implicitFailureF._
@@ -82,7 +83,7 @@ abstract class AbstractRaffleBehavior[M[+ _] : SuccessF : FailureF : State1F[Sta
 
   protected def commandHandlerBodyTemplate(condition: => Args => Boolean, newState: Args => Args): HandlerBody[RaffleCommand, M] =
     (command, args) => args match {
-      case History_Arg(_) | History_And_OptionalState_Args(_, _) =>
+      case HistoryArg(_) | HistoryAndOptionalStateArgs(_, _) =>
         val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
         println(s"\ncurrent raffle history = $currentRaffleHistory")
         if (condition(args)) {
