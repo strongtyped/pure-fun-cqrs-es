@@ -4,12 +4,12 @@ import io.purefuncqrses.Identity
 import io.purefuncqrses.features.implicits.FeaturesImplicits._
 import io.purefuncqrses.features.transform.StateTransformer.StateTransformed
 import io.purefuncqrses.samples.raffle.app.PureRaffleApp
-import io.purefuncqrses.samples.raffle.behavior.State
+import io.purefuncqrses.samples.raffle.behavior.{HistoryState, State}
 
 object PureIdentityRaffleApp extends App {
 
-  implicit val identityRaffleStateF = identityStateF[State]
+  implicit val identityRaffleStateF = identityStateF[HistoryState]
 
-  new PureRaffleApp[λ[`+A` => StateTransformed[State, Identity, A]]].runApp()
+  new PureRaffleApp[λ[`+A` => StateTransformed[HistoryState, Identity, A]]].runApp()
 
 }

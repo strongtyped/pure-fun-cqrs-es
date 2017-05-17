@@ -28,7 +28,7 @@ object Behavior {
 
 import Behavior._
 
-abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]] {
+abstract class Behavior[A, S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
 
   private val implicitSuccessF = implicitly[SuccessF[M]]
 

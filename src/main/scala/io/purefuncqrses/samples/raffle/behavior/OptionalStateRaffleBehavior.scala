@@ -7,10 +7,8 @@ import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.{HandlerBody, Raf
 
 import scala.language.higherKinds
 
-class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
-  extends OptimizedRaffleBehavior[M] {
-
-  import implicitFailureF._
+class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]]]
+  extends OptimizedRaffleBehavior[HistoryState, M] {
 
   import implicitStateF._
 
@@ -18,27 +16,22 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?
   var currentOptionalRaffleState: Option[RaffleState] = None
 
 
-  override protected def setState(args: Args): M[Unit] = args match {
-    case HistoryAndOptionalStateArgs(_, _) =>
-      val newRaffleHistory: RaffleHistory = args.getRaffleHistory
-      val newOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
-      this.currentOptionalRaffleState = newOptionalRaffleState
-      val state: State = HistoryArg(newRaffleHistory)
-      write {
-        state
-      }
-    case _ =>
-      failure(new IllegalStateException(s"$args are not 'history and optional state' arguments"))
+  override protected def setState(args: HistoryAndOptionalStateArgs): M[Unit] = {
+    val newRaffleHistory: RaffleHistory = args.getRaffleHistory
+    val newOptionalRaffleState: Option[RaffleState] = args.getOptionalRaffleState
+    this.currentOptionalRaffleState = newOptionalRaffleState
+    val newState: HistoryState = HistoryArg(newRaffleHistory)
+    write {
+      newState
+    }
   }
 
 
-  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
+  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[HistoryAndOptionalStateArgs, Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
-      case state: HistoryArg =>
-        handlerBody(command, HistoryAndOptionalStateArgs(state.raffleHistory, currentOptionalRaffleState))
       case state =>
-        failure(new IllegalStateException(s"$state is not a 'history' state"))
+        handlerBody(command, HistoryAndOptionalStateArgs(state.raffleHistory, currentOptionalRaffleState))
     }
   }
 

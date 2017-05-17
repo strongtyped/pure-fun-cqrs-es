@@ -6,8 +6,8 @@ import io.purefuncqrses.samples.raffle.behavior._
 
 import scala.language.higherKinds
 
-class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]] : RunF]
-  extends RaffleApp[M] {
+class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]] : RunF]
+  extends RaffleApp[HistoryArg, HistoryState, M] {
 
   import implicitRunF._
 

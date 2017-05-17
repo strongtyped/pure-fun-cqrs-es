@@ -10,13 +10,13 @@ import io.purefuncqrses.samples.raffle.id.RaffleId
 
 import scala.language.higherKinds
 
-class OptionalStateRaffleApp[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]] : RunF]
-  extends RaffleApp[M] {
+class OptionalStateRaffleApp[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]] : RunF]
+  extends RaffleApp[HistoryAndOptionalStateArgs, HistoryState, M] {
 
   import implicitRunF._
 
 
-  override protected val raffleBehavior: Behavior[RaffleCommand, RaffleEvent, RaffleId, M] = new OptionalStateRaffleBehavior[M]
+  override protected val raffleBehavior = new OptionalStateRaffleBehavior[M]
 
   override protected val input = (HistoryArg(empty), ()).asInstanceOf[Input]
 

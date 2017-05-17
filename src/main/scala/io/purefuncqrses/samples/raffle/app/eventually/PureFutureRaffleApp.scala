@@ -3,14 +3,14 @@ package io.purefuncqrses.samples.raffle.app.eventually
 import io.purefuncqrses.features.implicits.FeaturesImplicits._
 import io.purefuncqrses.features.transform.StateTransformer.StateTransformed
 import io.purefuncqrses.samples.raffle.app.PureRaffleApp
-import io.purefuncqrses.samples.raffle.behavior.State
+import io.purefuncqrses.samples.raffle.behavior.{HistoryState, State}
 
 import scala.concurrent.Future
 
 object PureFutureRaffleApp extends App {
 
-  implicit val futureRaffleStateF = futureStateF[State]
+  implicit val futureRaffleStateF = futureStateF[HistoryState]
 
-  new PureRaffleApp[λ[`+A` => StateTransformed[State, Future, A]]].runApp()
+  new PureRaffleApp[λ[`+A` => StateTransformed[HistoryState, Future, A]]].runApp()
 
 }

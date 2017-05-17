@@ -7,31 +7,25 @@ import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.HandlerBody
 
 import scala.language.higherKinds
 
-class PureOptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
-  extends OptimizedRaffleBehavior[M] {
-
-  import implicitFailureF._
+class PureOptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryAndOptionalStateState, ?[_]]]
+  extends OptimizedRaffleBehavior[HistoryAndOptionalStateState, M] {
 
   import implicitStateF._
 
 
-  override protected def setState(args: Args): M[Unit] = args match {
-    case state: HistoryAndOptionalStateArgs =>
-      write {
-        state
-      }
-    case _ =>
-      failure(new IllegalStateException(s"$args are not 'history and optional state' arguments"))
+  override protected def setState(args: HistoryAndOptionalStateArgs): M[Unit] = {
+    val newState = args
+    write {
+      newState
+    }
   }
 
 
-  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
+  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[HistoryAndOptionalStateArgs, Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
-      case state: HistoryAndOptionalStateArgs =>
-        handlerBody(command, state)
       case state =>
-        failure(new IllegalStateException(s"$state is not a 'history and optional state' state"))
+        handlerBody(command, state)
     }
   }
 

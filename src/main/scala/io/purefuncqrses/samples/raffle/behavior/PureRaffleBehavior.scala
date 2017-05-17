@@ -11,27 +11,25 @@ import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.{HandlerBody, Raf
 
 import scala.language.higherKinds
 
-class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
-  extends RaffleBehavior[M] {
+class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]]]
+  extends RaffleBehavior[HistoryArg, HistoryState, M] {
 
-  import implicitFailureF._
-
-  private val implicitStateF = implicitly[StateF[State, M]]
+  private val implicitStateF = implicitly[StateF[HistoryState, M]]
 
   import implicitStateF._
 
 
-  override protected def isRaffleCreated(args: Args): Boolean = {
+  override protected def isRaffleCreated(args: HistoryArg): Boolean = {
     val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     currentRaffleHistory.nonEmpty
   }
 
-  override protected def getRaffleId(args: Args): RaffleId = {
+  override protected def getRaffleId(args: HistoryArg): RaffleId = {
     val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     currentRaffleHistory.head.asInstanceOf[RaffleCreatedEvent].raffleId
   }
 
-  override protected def participants(args: Args): Seq[String] = {
+  override protected def participants(args: HistoryArg): Seq[String] = {
     val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     currentRaffleHistory.tail.foldLeft(List[String]()) { (participants, raffleEvent) =>
       raffleEvent match {
@@ -45,7 +43,7 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
     }
   }
 
-  override protected def hasParticipantBeenAdded(name: String, args: Args): Boolean = {
+  override protected def hasParticipantBeenAdded(name: String, args: HistoryArg): Boolean = {
     val currentRaffleHistory: RaffleHistory = args.getRaffleHistory
     val numberOfTimesAdded =
       currentRaffleHistory.count(raffleEvent => raffleEvent.isInstanceOf[ParticipantAddedEvent] && raffleEvent.asInstanceOf[ParticipantAddedEvent].name == name)
@@ -55,49 +53,45 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[State, ?[_]]]
   }
 
 
-  override protected def setState(args: Args): M[Unit] = args match {
-    case state: HistoryArg =>
-      write {
-        state
-      }
-    case _ =>
-      failure(new IllegalStateException(s"$args is not a 'history' argument"))
+  override protected def setState(args: HistoryArg): M[Unit] = {
+    val newState = args
+    write {
+      newState
+    }
   }
 
 
-  override protected def newStateForCreateRaffle(args: Args): Args = {
+  override protected def newStateForCreateRaffle(args: HistoryArg): HistoryArg = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(args)
     HistoryArg(newRaffleHistory)
   }
 
-  override protected def newStateForCreateRaffleAddingParticipant(name: String)(args: Args): Args = {
+  override protected def newStateForCreateRaffleAddingParticipant(name: String)(args: HistoryArg): HistoryArg = {
     val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, args)
     HistoryArg(newRaffleHistory)
   }
 
-  override protected def newStateForAddParticipant(name: String)(args: Args): Args = {
+  override protected def newStateForAddParticipant(name: String)(args: HistoryArg): HistoryArg = {
     val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
     HistoryArg(newRaffleHistory)
   }
 
-  override protected def newStateForRemoveParticipant(name: String)(args: Args): Args = {
+  override protected def newStateForRemoveParticipant(name: String)(args: HistoryArg): HistoryArg = {
     val newRaffleHistory = newRaffleHistoryForRemoveParticipantFrom(name, args)
     HistoryArg(newRaffleHistory)
   }
 
-  override protected def newStateForSelectWinner(args: Args): Args = {
+  override protected def newStateForSelectWinner(args: HistoryArg): HistoryArg = {
     val (_, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
     HistoryArg(newRaffleHistory)
   }
 
 
-  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[Cmd, M]): Handler[Cmd, M] = command => {
+  override protected def handlerTemplate[Cmd](handlerBody: HandlerBody[HistoryArg, Cmd, M]): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
-      case state: HistoryArg =>
+      state =>
         handlerBody(command, state)
-      case state =>
-        failure(new IllegalStateException(s"$state is not a 'history' state"))
     }
   }
 
