@@ -22,8 +22,6 @@ import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 //}
 
 
-
-
 /*
 
 

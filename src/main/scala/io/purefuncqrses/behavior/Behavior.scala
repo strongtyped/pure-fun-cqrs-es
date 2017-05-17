@@ -52,8 +52,8 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
     }
   }
 
-  protected def handlerTemplate[Cmd](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = command => {
-    println(s"\ncase $command =>")
+
+  protected def handlerTemplate[Cmd](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = { command =>
     read(()) flatMap {
       case state =>
         val args: A = state.asInstanceOf[A] // default A = S
