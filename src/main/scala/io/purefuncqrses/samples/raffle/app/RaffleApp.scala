@@ -18,7 +18,7 @@ abstract class RaffleApp[A <: Args, S <: State, M[+ _] : SuccessF : FailureF : S
   import implicitRunF.{Input, run}
 
 
-  protected val raffleBehavior: Behavior[RaffleCommand, RaffleEvent, RaffleId, M]
+  protected val raffleBehavior: Behavior[A, S, RaffleCommand, RaffleEvent, RaffleId, M]
 
   protected val raffleCommands: RaffleCommands =
     seq(

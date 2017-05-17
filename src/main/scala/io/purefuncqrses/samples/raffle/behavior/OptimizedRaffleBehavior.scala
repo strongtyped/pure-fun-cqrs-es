@@ -21,6 +21,7 @@ abstract class OptimizedRaffleBehavior[S <: State, M[+ _] : SuccessF : FailureF 
     currentOptionalRaffleState.get.asInstanceOf[OpenState].participants
   }
 
+
   //
   // basic predicates
   //

@@ -17,6 +17,8 @@ object Behavior {
 
   type Handler[C, M[+ _]] = C => M[Unit]
 
+  type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
+
   type HandlerForAll[C, M[+ _]] = immutable.Seq[C] => M[Unit]
 
 
@@ -28,7 +30,7 @@ object Behavior {
 
 import Behavior._
 
-abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF] {
+abstract class Behavior[A, S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
 
   private val implicitSuccessF = implicitly[SuccessF[M]]
 
@@ -37,6 +39,28 @@ abstract class Behavior[C, E, I, M[+ _] : SuccessF : FailureF] {
   protected val implicitFailureF = implicitly[FailureF[M]]
 
   import implicitFailureF._
+
+  protected val implicitStateF = implicitly[StateF[S, M]]
+
+  import implicitStateF._
+
+
+  protected def setState(args: A): M[Unit] = {
+    val newState: S = args.asInstanceOf[S] // default A = S
+    write {
+      newState
+    }
+  }
+
+
+  protected def handlerTemplate[Cmd](handlerBody: HandlerBody[A, Cmd, M]): Handler[Cmd, M] = command => {
+    println(s"\ncase $command =>")
+    read(()) flatMap {
+      case state =>
+        handlerBody(command, state.asInstanceOf[A]) // default A = S
+    }
+  }
+
 
   protected val partialHandlers: PartialHandlers[C, M]
 

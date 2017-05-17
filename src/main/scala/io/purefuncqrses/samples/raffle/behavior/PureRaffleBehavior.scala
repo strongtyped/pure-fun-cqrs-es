@@ -34,6 +34,7 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_
     }
   }
 
+
   //
   // basic predicates
   //
