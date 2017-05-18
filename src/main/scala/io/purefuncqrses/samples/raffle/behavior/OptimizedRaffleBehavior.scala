@@ -54,7 +54,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
   //
   // blocks
   //
-  override protected def createRaffleBlock: RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
+  override protected val createRaffleBlock: RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
   blockTemplate({ args =>
     val raffleId = RaffleId.generate()
     mkRaffleHistoryAndOptionalRaffleAggregateArgs(
@@ -92,7 +92,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
         })
     })
 
-  override protected def selectWinnerBlock: RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
+  override protected val selectWinnerBlock: RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
     blockTemplate({ args =>
       val raffleWinner = winner(args)
       mkRaffleHistoryAndOptionalRaffleAggregateArgs(

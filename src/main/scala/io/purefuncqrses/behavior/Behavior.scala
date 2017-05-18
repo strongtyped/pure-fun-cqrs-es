@@ -75,10 +75,10 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
   // pure default: A = S
   // override for impure state (A != S)
 
-  protected def handlerTemplate[Cmd <: C](condition: A => Boolean, block: A => M[Unit]): Handler[Cmd, M] = { command =>
+  protected def handlerTemplate[Cmd <: C](predicate: A => Boolean, block: A => M[Unit]): Handler[Cmd, M] = { command =>
     read(()) flatMap { state =>
       val args: A = state.asInstanceOf[A]
-      if (condition(args)) {
+      if (predicate(args)) {
         block(args)
       } else {
         failure(new IllegalStateException(s"$command not applicable with history ${args.getHistory}"))
