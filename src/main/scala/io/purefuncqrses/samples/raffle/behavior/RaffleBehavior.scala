@@ -40,6 +40,9 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
 
   protected def participants(args: A): Seq[String]
 
+  //
+  // basic derived functions
+  //
   protected def winner(args: A): String = {
     val currentParticipants = participants(args)
     currentParticipants(Random.nextInt(currentParticipants.size))
@@ -53,12 +56,15 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
 
   protected def hasParticipantBeenAdded(name: String, args: A): Boolean
 
+  //
+  // basic derived predicates
+  //
   private def hasParticipants(args: A): Boolean =
-    participants(args).nonEmpty
+  participants(args).nonEmpty
 
 
   //
-  // derived predicates
+  // derived conditions
   //
   protected def createRaffleCondition(args: A): Boolean =
   !isRaffleCreated(args)
@@ -77,17 +83,17 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   }
 
   //
-  // more complex functions
+  // blocks
   //
-  protected def newArgsForCreateRaffle(args: A): A
+  protected def createRaffleBlock(args: A): M[Unit]
 
-  protected def newArgsForCreateRaffleAddingParticipant(name: String)(args: A): A
+  protected def createRaffleAddingParticipantBlock(name: String)(args: A): M[Unit]
 
-  protected def newArgsForAddParticipant(name: String)(args: A): A
+  protected def addParticipantBlock(name: String)(args: A): M[Unit]
 
-  protected def newArgsForRemoveParticipant(name: String)(args: A): A
+  protected def removeParticipantBlock(name: String)(args: A): M[Unit]
 
-  protected def newArgsForSelectWinner(args: A): A
+  protected def selectWinnerBlock(args: A): M[Unit]
 
 
   //
@@ -96,32 +102,32 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   private lazy val createRaffleCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleCommand.type =>
       println(s"\ncase $command =>")
-      handlerTemplate[CreateRaffleCommand.type](createRaffleCondition, newArgsForCreateRaffle)(command)
+      handlerTemplate[CreateRaffleCommand.type](createRaffleCondition, createRaffleBlock)(command)
   }
 
   private lazy val createRaffleAddingParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleAddingParticipantCommand =>
       println(s"\ncase $command =>")
-      handlerTemplate[CreateRaffleAddingParticipantCommand](createRaffleAddingParticipantCondition, newArgsForCreateRaffleAddingParticipant(command.name))(command)
+      handlerTemplate[CreateRaffleAddingParticipantCommand](createRaffleAddingParticipantCondition, createRaffleAddingParticipantBlock(command.name))(command)
   }
 
   private lazy val addParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: AddParticipantCommand =>
       println(s"\ncase $command =>")
-      handlerTemplate[AddParticipantCommand](addParticipantCondition(command.name), newArgsForAddParticipant(command.name))(command)
+      handlerTemplate[AddParticipantCommand](addParticipantCondition(command.name), addParticipantBlock(command.name))(command)
   }
 
   private lazy val removeParticipantCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: RemoveParticipantCommand =>
       println(s"\ncase $command =>")
-      handlerTemplate[RemoveParticipantCommand](removeParticipantCondition(command.name), newArgsForRemoveParticipant(command.name))(command)
+      handlerTemplate[RemoveParticipantCommand](removeParticipantCondition(command.name), removeParticipantBlock(command.name))(command)
   }
 
 
   private lazy val selectWinnerCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: SelectWinnerCommand.type =>
       println(s"\ncase $command =>")
-      handlerTemplate[SelectWinnerCommand.type](selectWinnerCondition, newArgsForSelectWinner)(command)
+      handlerTemplate[SelectWinnerCommand.type](selectWinnerCondition, selectWinnerBlock)(command)
   }
 
 

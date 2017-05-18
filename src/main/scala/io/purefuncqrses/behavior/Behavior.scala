@@ -14,6 +14,7 @@ object Behavior {
 
   type PartialHandlers[C, M[+ _]] = List[PartialHandler[C, M]]
 
+
   type Handler[C, M[+ _]] = C => M[Unit]
 
   type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
@@ -30,7 +31,24 @@ object Behavior {
 
 import Behavior._
 
-abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
+/**
+  *
+  * @tparam A
+  * arguments available for business logic (should, at least, have history)
+  * @tparam S
+  * state available for business logic (should, at least, have history)
+  * A = S for a pure implementation
+  * @tparam C
+  * command
+  * @tparam E
+  * event
+  * @tparam I
+  * id
+  * @tparam M
+  * monad
+  */
+
+abstract class Behavior[A <: HasHistory[E], S <: HasHistory[E], C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
 
   private val implicitSuccessF = implicitly[SuccessF[M]]
 
@@ -53,34 +71,22 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
 
   // pure default: A = S
   // override for impure state (A != S)
-  protected def handlerTemplate[Cmd <: C](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = { command =>
+  protected def handlerTemplate[Cmd <: C](condition: A => Boolean, block: A => M[Unit]): Handler[Cmd, M] = { command =>
     read(()) flatMap { state =>
       val args: A = state.asInstanceOf[A]
-      val currentHistory: History[E] = args.getHistory
-      println(s"\ncurrent history = $currentHistory")
       if (condition(args)) {
-        setStateFromArgs(newArgs(args))
+        block(args)
       } else {
-        failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
+        failure(new IllegalStateException(s"$command not applicable with history ${args.getHistory}"))
       }
     }
   }
 
   // do not override (not possible anyway)
-  protected final def newHistoryFor(i: I, args: A, es: E*): History[E] = {
-    val newHistory: History[E] = es.foldLeft(args.getHistory)(_ :+ _)
-    println(s"new history = $newHistory")
-    newHistory
-  }
+  protected final def updateHistory(args: A, es: E*): History[E] =
+    es.foldLeft(args.getHistory)(_ :+ _)
 
-  // do not override (not possible anyway)
-  protected final def newHistoryFor(args: A, es: E*): History[E] = {
-    val newHistory: History[E] = es.foldLeft(args.getHistory)(_ :+ _)
-    println(s"new history = $newHistory")
-    newHistory
-  }
-
-  // define
+  // this is what you should define
   protected val partialHandlers: PartialHandlers[C, M]
 
   private val failurePartialHandler: PartialHandler[C, M] = {
@@ -89,6 +95,7 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
       failure(new IllegalStateException(s"unknown $c"))
   }
 
+  // this is what you should use
   def handleAll: HandleAll[C, M] =
     traverse(partialHandlers.foldRight(failurePartialHandler)(_ orElse _))(_).ignore
 

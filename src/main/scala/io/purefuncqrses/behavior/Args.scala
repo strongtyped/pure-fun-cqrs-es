@@ -19,10 +19,10 @@ case class HistoryArg[E](history: History[E]) extends Args[E] {
 
 }
 
-case class HistoryAndOptionalAggregateStateArgs[E, AS](history: History[E], optionalAggregateState: Option[AS]) extends Args[E] {
+case class HistoryAndOptionalAggregateArgs[E, A](history: History[E], optionalAggregate: Option[A]) extends Args[E] {
 
   override def getHistory: History[E] = history
 
-  def getOptionalAggregateState: Option[AS] = optionalAggregateState
+  def getOptionalAggregate: Option[A] = optionalAggregate
 
 }

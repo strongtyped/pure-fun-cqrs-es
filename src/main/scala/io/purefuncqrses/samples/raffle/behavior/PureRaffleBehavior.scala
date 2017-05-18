@@ -34,8 +34,8 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
           participants.add(name)
         case ParticipantRemovedEvent(name, _) =>
           participants.remove(name)
-        case _ =>
-          participants
+        case event =>
+          sys.error(s"$event is not applicable for non-existing raffle (should never happen)")
       }
     }
   }
@@ -60,34 +60,38 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
 
 
   //
-  // more complex functions
+  // blocks
   //
-  override protected def newArgsForCreateRaffle(args: RaffleHistoryArg): RaffleHistoryArg = {
+  override protected def createRaffleBlock(args: RaffleHistoryArg): M[Unit] = {
     val raffleId = RaffleId.generate()
-    val newRaffleHistory = newHistoryFor(raffleId, args, RaffleCreatedEvent(raffleId))
-    raffleHistoryArg(newRaffleHistory)
+    val raffleHistoryArg = mkRaffleHistoryArg(updateHistory(args, RaffleCreatedEvent(raffleId)))
+    println(s"\n$raffleHistoryArg")
+    setStateFromArgs(raffleHistoryArg)
   }
 
-  override protected def newArgsForCreateRaffleAddingParticipant(name: String)(args: RaffleHistoryArg): RaffleHistoryArg = {
+  override protected def createRaffleAddingParticipantBlock(name: String)(args: RaffleHistoryArg): M[Unit] = {
     val raffleId = RaffleId.generate()
-    val newRaffleHistory = newHistoryFor(raffleId, args, RaffleCreatedEvent(raffleId), ParticipantAddedEvent(name, raffleId))
-    raffleHistoryArg(newRaffleHistory)
+    val raffleHistoryArg = mkRaffleHistoryArg(updateHistory(args, RaffleCreatedEvent(raffleId), ParticipantAddedEvent(name, raffleId)))
+    println(s"\n$raffleHistoryArg")
+    setStateFromArgs(raffleHistoryArg)
   }
 
-  override protected def newArgsForAddParticipant(name: String)(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val newRaffleHistory = newHistoryFor(args, ParticipantAddedEvent(name, getRaffleId(args)))
-    raffleHistoryArg(newRaffleHistory)
+  override protected def addParticipantBlock(name: String)(args: RaffleHistoryArg): M[Unit] = {
+    val raffleHistoryArg = mkRaffleHistoryArg(updateHistory(args, ParticipantAddedEvent(name, getRaffleId(args))))
+    println(s"\n$raffleHistoryArg")
+    setStateFromArgs(raffleHistoryArg)
   }
 
-  override protected def newArgsForRemoveParticipant(name: String)(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val newRaffleHistory = newHistoryFor(args, ParticipantRemovedEvent(name, getRaffleId(args)))
-    raffleHistoryArg(newRaffleHistory)
+  override protected def removeParticipantBlock(name: String)(args: RaffleHistoryArg): M[Unit] = {
+    val raffleHistoryArg = mkRaffleHistoryArg(updateHistory(args, ParticipantRemovedEvent(name, getRaffleId(args))))
+    println(s"\n$raffleHistoryArg")
+    setStateFromArgs(raffleHistoryArg)
   }
 
-  override protected def newArgsForSelectWinner(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val raffleWinner = winner(args)
-    val newRaffleHistory = newHistoryFor(args, WinnerSelectedEvent(raffleWinner, OffsetDateTime.now, getRaffleId(args)))
-    raffleHistoryArg(newRaffleHistory)
+  override protected def selectWinnerBlock(args: RaffleHistoryArg): M[Unit] = {
+    val raffleHistoryArg = mkRaffleHistoryArg(updateHistory(args, WinnerSelectedEvent(winner(args), OffsetDateTime.now, getRaffleId(args))))
+    println(s"\n$raffleHistoryArg")
+    setStateFromArgs(raffleHistoryArg)
   }
 
 }
