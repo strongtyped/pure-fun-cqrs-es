@@ -66,7 +66,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
 
   private def hasParticipants(args: A): Boolean =
-  participants(args).nonEmpty
+    participants(args).nonEmpty
 
 
   //
@@ -74,7 +74,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
 
   protected def createRaffleCondition(args: A): Boolean =
-  !isRaffleCreated(args)
+    !isRaffleCreated(args)
 
   protected def createRaffleAddingParticipantCondition(args: A): Boolean =
     !isRaffleCreated(args)

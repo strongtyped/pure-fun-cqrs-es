@@ -67,9 +67,9 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
 
   override protected def createRaffleBlock: RaffleHistoryCommandHandlerBlock[M] =
     blockTemplate({ args =>
-    val raffleId = RaffleId.generate()
-    mkRaffleHistoryArg(updatedHistory(args, RaffleCreatedEvent(raffleId)))
-  })
+      val raffleId = RaffleId.generate()
+      mkRaffleHistoryArg(updatedHistory(args, RaffleCreatedEvent(raffleId)))
+    })
 
   override protected def createRaffleAddingParticipantBlock(name: String): RaffleHistoryCommandHandlerBlock[M] =
     blockTemplate({ args =>
@@ -78,14 +78,14 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
     })
 
   override protected def addParticipantBlock(name: String): RaffleHistoryCommandHandlerBlock[M] =
-  blockTemplate({ args =>
-    mkRaffleHistoryArg(updatedHistory(args, ParticipantAddedEvent(name, getRaffleId(args))))
-  })
+    blockTemplate({ args =>
+      mkRaffleHistoryArg(updatedHistory(args, ParticipantAddedEvent(name, getRaffleId(args))))
+    })
 
   override protected def removeParticipantBlock(name: String): RaffleHistoryCommandHandlerBlock[M] =
-  blockTemplate({ args =>
-    mkRaffleHistoryArg(updatedHistory(args, ParticipantRemovedEvent(name, getRaffleId(args))))
-  })
+    blockTemplate({ args =>
+      mkRaffleHistoryArg(updatedHistory(args, ParticipantRemovedEvent(name, getRaffleId(args))))
+    })
 
   override protected def selectWinnerBlock: RaffleHistoryCommandHandlerBlock[M] =
     blockTemplate({ args =>

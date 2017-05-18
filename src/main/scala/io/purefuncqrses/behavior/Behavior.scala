@@ -17,7 +17,7 @@ object Behavior {
 
   type Handler[C, M[+ _]] = C => M[Unit]
 
-//  type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
+  //  type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
 
   type HandlerBlock[A, M[+ _]] = A => M[Unit]
 
@@ -68,9 +68,9 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
   // override for impure state (A != S)
 
   protected def setStateFromArgs(args: A): M[Unit] =
-  write {
-    args.asInstanceOf[S]
-  }
+    write {
+      args.asInstanceOf[S]
+    }
 
   // pure default: A = S
   // override for impure state (A != S)
