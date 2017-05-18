@@ -43,35 +43,38 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
 
   import implicitStateF._
 
-
+  // override for impure state
+  // pure default: A = S
   protected def setStateFromArgs(args: A): M[Unit] = {
-    val state: S = args.asInstanceOf[S] // default A = S
+    val state: S = args.asInstanceOf[S]
     write {
       state
     }
   }
 
+  // override for impure state
+  // pure default: A = S
   protected def handlerTemplate[Cmd](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = { command =>
     read(()) flatMap { state =>
-        val args: A = state.asInstanceOf[A] // default A = S
+      val args: A = state.asInstanceOf[A]
       val currentHistory: History[E] = args.getHistory
-        println(s"\ncurrent history = $currentHistory")
-        if (condition(args)) {
-          setStateFromArgs(newArgs(args))
-        } else {
-          failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
-        }
+      println(s"\ncurrent history = $currentHistory")
+      if (condition(args)) {
+        setStateFromArgs(newArgs(args))
+      } else {
+        failure(new IllegalStateException(s"$command not applicable with history $currentHistory"))
+      }
     }
   }
 
-  protected def newHistoryFor(i: I, a: A, es: E*): History[E] = {
-    val newHistory: History[E] = es.foldLeft(a.getHistory)(_ :+ _)
+  protected def newHistoryFor(i: I, args: A, es: E*): History[E] = {
+    val newHistory: History[E] = es.foldLeft(args.getHistory)(_ :+ _)
     println(s"new history = $newHistory")
     newHistory
   }
 
-  protected def newHistoryFor(a: A, es: E*): History[E] = {
-    val newHistory: History[E] = es.foldLeft(a.getHistory)(_ :+ _)
+  protected def newHistoryFor(args: A, es: E*): History[E] = {
+    val newHistory: History[E] = es.foldLeft(args.getHistory)(_ :+ _)
     println(s"new history = $newHistory")
     newHistory
   }
