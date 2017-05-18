@@ -16,7 +16,7 @@ class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]] : 
 
   override protected val raffleBehavior = new PureRaffleBehavior[M]
 
-  override protected val input = (HistoryArg[RaffleEvent, RaffleState](empty), ()).asInstanceOf[Input]
+  override protected val input = (HistoryArg[RaffleEvent, RaffleAggregateState](empty), ()).asInstanceOf[Input]
 
 
 }

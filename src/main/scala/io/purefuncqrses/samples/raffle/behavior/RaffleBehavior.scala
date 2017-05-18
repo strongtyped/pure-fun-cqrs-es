@@ -13,16 +13,24 @@ import scala.util.Random
 import scala.language.higherKinds
 
 object RaffleBehavior {
+
   type RaffleCommands = immutable.Seq[RaffleCommand]
+
+
   type RaffleHistory = History[RaffleEvent]
+
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
+
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
-  type RaffleCommandHandlerForAll[M[+ _]] = HandlerForAll[RaffleCommand, M]
+
+
+  type HandleAllRaffleCommands[M[+ _]] = HandleAll[RaffleCommand, M]
+
 }
 
 import RaffleBehavior._
 
-abstract class RaffleBehavior[A <: RaffleArgs, S <: State, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]]
+abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]]
   extends Behavior[A, S, RaffleCommand, RaffleEvent, RaffleId, M] {
 
   //

@@ -18,7 +18,7 @@ class OptionalStateRaffleApp[M[+ _] : SuccessF : FailureF : StateF[HistoryState,
 
   override protected val raffleBehavior = new OptionalStateRaffleBehavior[M]
 
-  override protected val input = (HistoryArg[RaffleEvent, RaffleState](empty), ()).asInstanceOf[Input]
+  override protected val input = (HistoryArg[RaffleEvent, RaffleAggregateState](empty), ()).asInstanceOf[Input]
 
 
 }

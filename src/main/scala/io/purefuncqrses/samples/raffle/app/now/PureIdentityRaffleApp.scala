@@ -4,7 +4,7 @@ import io.purefuncqrses.Identity
 import io.purefuncqrses.features.implicits.FeaturesImplicits._
 import io.purefuncqrses.features.transform.StateTransformer.StateTransformed
 import io.purefuncqrses.samples.raffle.app.PureRaffleApp
-import io.purefuncqrses.samples.raffle.behavior.{HistoryState, State}
+import io.purefuncqrses.samples.raffle.behavior.{HistoryState, RaffleState}
 
 object PureIdentityRaffleApp extends App {
 

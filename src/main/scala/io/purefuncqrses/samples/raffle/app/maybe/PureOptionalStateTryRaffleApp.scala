@@ -3,7 +3,7 @@ package io.purefuncqrses.samples.raffle.app.maybe
 import io.purefuncqrses.features.implicits.FeaturesImplicits._
 import io.purefuncqrses.features.transform.StateTransformer.StateTransformed
 import io.purefuncqrses.samples.raffle.app.PureOptionalStateRaffleApp
-import io.purefuncqrses.samples.raffle.behavior.{HistoryAndOptionalStateState, State}
+import io.purefuncqrses.samples.raffle.behavior.{HistoryAndOptionalStateState, RaffleState}
 
 import scala.util.Try
 

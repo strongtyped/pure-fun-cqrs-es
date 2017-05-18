@@ -18,7 +18,8 @@ object Behavior {
 
   type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
 
-  type HandlerForAll[C, M[+ _]] = immutable.Seq[C] => M[Unit]
+
+  type HandleAll[C, M[+ _]] = immutable.Seq[C] => M[Unit]
 
 
   def empty[E] = immutable.Seq[E]()
@@ -45,16 +46,14 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
 
   // pure default: A = S
   // override for impure state (A != S)
-  protected def setStateFromArgs(args: A): M[Unit] = {
-    val state: S = args.asInstanceOf[S]
-    write {
-      state
-    }
+  protected def setStateFromArgs(args: A): M[Unit] =
+  write {
+    args.asInstanceOf[S]
   }
 
   // pure default: A = S
   // override for impure state (A != S)
-  protected def handlerTemplate[Cmd](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = { command =>
+  protected def handlerTemplate[Cmd <: C](condition: A => Boolean, newArgs: A => A): Handler[Cmd, M] = { command =>
     read(()) flatMap { state =>
       val args: A = state.asInstanceOf[A]
       val currentHistory: History[E] = args.getHistory
@@ -90,11 +89,7 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
       failure(new IllegalStateException(s"unknown $c"))
   }
 
-  private def handle: Handler[C, M] =
-    partialHandlers.foldRight(failurePartialHandler)(_ orElse _)
-
-
-  def handleAll: HandlerForAll[C, M] =
-    traverse(handle)(_).ignore
+  def handleAll: HandleAll[C, M] =
+    traverse(partialHandlers.foldRight(failurePartialHandler)(_ orElse _))(_).ignore
 
 }

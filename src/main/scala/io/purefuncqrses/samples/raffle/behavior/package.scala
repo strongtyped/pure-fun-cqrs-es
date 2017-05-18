@@ -1,19 +1,27 @@
 package io.purefuncqrses.samples.raffle
 
+import io.purefuncqrses.behavior.Behavior.History
 import io.purefuncqrses.behavior.{Args, HasHistory, HistoryAndOptionalAggregateStateArgs, HistoryArg}
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
 package object behavior {
 
   type HasRaffleHistory = HasHistory[RaffleEvent]
 
-  type RaffleArgs = Args[RaffleEvent, RaffleState]
+  type RaffleArgs = Args[RaffleEvent, RaffleAggregateState]
 
-  type RaffleHistoryArg = HistoryArg[RaffleEvent, RaffleState]
+  type RaffleHistoryArg = HistoryArg[RaffleEvent, RaffleAggregateState]
 
-  type RaffleHistoryAndOptionalRaffleStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState]
+  val raffleHistoryArg = (raffleHistory: RaffleHistory) =>
+    HistoryArg[RaffleEvent, RaffleAggregateState](raffleHistory)
 
-  type State = RaffleArgs
+  type RaffleHistoryAndOptionalRaffleStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleAggregateState]
+
+  val raffleHistoryAndOptionalRaffleStateArgs= (raffleHistory: RaffleHistory, optionalRaffleAggregateState: Option[RaffleAggregateState]) =>
+    HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleAggregateState](raffleHistory, optionalRaffleAggregateState)
+
+  type RaffleState = RaffleArgs
 
   type HistoryState = RaffleHistoryArg
 
