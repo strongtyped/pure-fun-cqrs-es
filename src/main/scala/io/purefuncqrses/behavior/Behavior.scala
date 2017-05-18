@@ -17,9 +17,9 @@ object Behavior {
 
   type Handler[C, M[+ _]] = C => M[Unit]
 
-  type ArgBlock[A, M[+ _]] = A => M[Unit]
+//  type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
 
-  type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
+  type HandlerBlock[A, M[+ _]] = A => M[Unit]
 
 
   type HandleAll[C, M[+ _]] = immutable.Seq[C] => M[Unit]
@@ -88,7 +88,7 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
 
   // do not override (not possible anyway)
 
-  protected final def blockTemplate(transformer: A => A): ArgBlock[A, M] = args => {
+  protected final def blockTemplate(transformer: A => A): HandlerBlock[A, M] = args => {
     val newArgs = transformer.apply(args)
     println(s"\n$newArgs")
     setStateFromArgs(newArgs)

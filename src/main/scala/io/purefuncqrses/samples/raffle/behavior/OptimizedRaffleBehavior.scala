@@ -2,7 +2,7 @@ package io.purefuncqrses.samples.raffle.behavior
 
 import java.time.OffsetDateTime
 
-import io.purefuncqrses.behavior.Behavior.ArgBlock
+import io.purefuncqrses.behavior.Behavior.HandlerBlock
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
@@ -12,7 +12,8 @@ import scala.language.higherKinds
 
 object OptimizedRaffleBehavior {
 
-  type RaffleHistoryAndOptionalRaffleAggregateArgsBlock[M[+ _]] = ArgBlock[RaffleHistoryAndOptionalRaffleAggregateArgs, M]
+  type RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M[+ _]] =
+    HandlerBlock[RaffleHistoryAndOptionalRaffleAggregateArgs, M]
 
 }
 
@@ -53,7 +54,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
   //
   // blocks
   //
-  override protected def createRaffleBlock: RaffleHistoryAndOptionalRaffleAggregateArgsBlock[M] =
+  override protected def createRaffleBlock: RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
   blockTemplate({ args =>
     val raffleId = RaffleId.generate()
     mkRaffleHistoryAndOptionalRaffleAggregateArgs(
@@ -61,7 +62,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
       Some(Open(raffleId, List())))
   })
 
-  override protected def createRaffleAddingParticipantBlock(name: String): RaffleHistoryAndOptionalRaffleAggregateArgsBlock[M] =
+  override protected def createRaffleAddingParticipantBlock(name: String): RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
     blockTemplate({ args =>
       val raffleId = RaffleId.generate()
       mkRaffleHistoryAndOptionalRaffleAggregateArgs(
@@ -71,7 +72,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
         })
     })
 
-  override protected def addParticipantBlock(name: String): RaffleHistoryAndOptionalRaffleAggregateArgsBlock[M] =
+  override protected def addParticipantBlock(name: String): RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
     blockTemplate({ args =>
       mkRaffleHistoryAndOptionalRaffleAggregateArgs(
         updatedHistory(args, ParticipantAddedEvent(name, getRaffleId(args))),
@@ -81,7 +82,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
         })
     })
 
-  override protected def removeParticipantBlock(name: String): RaffleHistoryAndOptionalRaffleAggregateArgsBlock[M] =
+  override protected def removeParticipantBlock(name: String): RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
     blockTemplate({ args =>
       mkRaffleHistoryAndOptionalRaffleAggregateArgs(
         updatedHistory(args, ParticipantRemovedEvent(name, getRaffleId(args))),
@@ -91,7 +92,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
         })
     })
 
-  override protected def selectWinnerBlock: RaffleHistoryAndOptionalRaffleAggregateArgsBlock[M] =
+  override protected def selectWinnerBlock: RaffleHistoryAndOptionalRaffleAggregateCommandHandlerBlock[M] =
     blockTemplate({ args =>
       val raffleWinner = winner(args)
       mkRaffleHistoryAndOptionalRaffleAggregateArgs(

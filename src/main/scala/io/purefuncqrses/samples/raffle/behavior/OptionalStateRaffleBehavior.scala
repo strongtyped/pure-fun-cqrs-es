@@ -1,7 +1,7 @@
 package io.purefuncqrses.samples.raffle.behavior
 
-import io.purefuncqrses.behavior.Behavior.{Handler, HandlerBody}
-import io.purefuncqrses.behavior.{HistoryAndOptionalAggregateArgs, HistoryArg}
+import io.purefuncqrses.behavior.Behavior.Handler
+import io.purefuncqrses.behavior.HistoryArg
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.features.ops.FeatureOps._
 import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory

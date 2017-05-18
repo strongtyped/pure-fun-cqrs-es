@@ -6,7 +6,7 @@ import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
-import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.{RaffleHistory, RaffleHistoryArgBlock}
+import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.{RaffleHistory, RaffleHistoryCommandHandlerBlock}
 
 import scala.language.higherKinds
 
@@ -65,29 +65,29 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
   // blocks
   //
 
-  override protected def createRaffleBlock: RaffleHistoryArgBlock[M] =
+  override protected def createRaffleBlock: RaffleHistoryCommandHandlerBlock[M] =
     blockTemplate({ args =>
     val raffleId = RaffleId.generate()
     mkRaffleHistoryArg(updatedHistory(args, RaffleCreatedEvent(raffleId)))
   })
 
-  override protected def createRaffleAddingParticipantBlock(name: String): RaffleHistoryArgBlock[M] =
+  override protected def createRaffleAddingParticipantBlock(name: String): RaffleHistoryCommandHandlerBlock[M] =
     blockTemplate({ args =>
       val raffleId = RaffleId.generate()
       mkRaffleHistoryArg(updatedHistory(args, RaffleCreatedEvent(raffleId), ParticipantAddedEvent(name, raffleId)))
     })
 
-  override protected def addParticipantBlock(name: String): RaffleHistoryArgBlock[M] =
+  override protected def addParticipantBlock(name: String): RaffleHistoryCommandHandlerBlock[M] =
   blockTemplate({ args =>
     mkRaffleHistoryArg(updatedHistory(args, ParticipantAddedEvent(name, getRaffleId(args))))
   })
 
-  override protected def removeParticipantBlock(name: String): RaffleHistoryArgBlock[M] =
+  override protected def removeParticipantBlock(name: String): RaffleHistoryCommandHandlerBlock[M] =
   blockTemplate({ args =>
     mkRaffleHistoryArg(updatedHistory(args, ParticipantRemovedEvent(name, getRaffleId(args))))
   })
 
-  override protected def selectWinnerBlock: RaffleHistoryArgBlock[M] =
+  override protected def selectWinnerBlock: RaffleHistoryCommandHandlerBlock[M] =
     blockTemplate({ args =>
       mkRaffleHistoryArg(updatedHistory(args, WinnerSelectedEvent(winner(args), OffsetDateTime.now, getRaffleId(args))))
     })

@@ -19,9 +19,9 @@ object RaffleBehavior {
 
   type RaffleHistory = History[RaffleEvent]
 
-  type RaffleHistoryArgBlock[M[+ _]] = ArgBlock[RaffleHistoryArg, M]
-
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
+
+  type RaffleHistoryCommandHandlerBlock[M[+ _]] = HandlerBlock[RaffleHistoryArg, M]
 
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
 
