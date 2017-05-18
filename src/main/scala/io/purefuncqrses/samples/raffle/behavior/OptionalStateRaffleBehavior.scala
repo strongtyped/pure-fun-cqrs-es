@@ -9,8 +9,8 @@ import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
 import scala.language.higherKinds
 
-class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]]]
-  extends OptimizedRaffleBehavior[HistoryState, M] {
+class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryState, ?[_]]]
+  extends OptimizedRaffleBehavior[RaffleHistoryState, M] {
 
   import implicitFailureF._
 
@@ -20,22 +20,22 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryS
   var currentOptionalRaffleState: Option[RaffleAggregateState] = None
 
 
-  override protected def setStateFromArgs(args: RaffleHistoryAndOptionalRaffleStateArgs): M[Unit] = {
+  override protected def setStateFromArgs(args: RaffleHistoryAndOptionalRaffleAggregateStateArgs): M[Unit] = {
     val newRaffleHistory: RaffleHistory = args.getHistory
     val newOptionalRaffleState: Option[RaffleAggregateState] = args.getOptionalAggregateState
     this.currentOptionalRaffleState = newOptionalRaffleState
-    val state: HistoryState = HistoryArg[RaffleEvent, RaffleAggregateState](newRaffleHistory)
+    val state: RaffleHistoryState = HistoryArg[RaffleEvent](newRaffleHistory)
     write {
       state
     }
   }
 
 
-  override protected def handlerTemplate[Cmd](condition: RaffleHistoryAndOptionalRaffleStateArgs => Boolean, newArgs: RaffleHistoryAndOptionalRaffleStateArgs => RaffleHistoryAndOptionalRaffleStateArgs): Handler[Cmd, M] = command => {
+  override protected def handlerTemplate[Cmd](condition: RaffleHistoryAndOptionalRaffleAggregateStateArgs => Boolean, newArgs: RaffleHistoryAndOptionalRaffleAggregateStateArgs => RaffleHistoryAndOptionalRaffleAggregateStateArgs): Handler[Cmd, M] = command => {
     println(s"\ncase $command =>")
     read(()) flatMap {
       case state =>
-        val args: RaffleHistoryAndOptionalRaffleStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleAggregateState](state.history, currentOptionalRaffleState)
+        val args: RaffleHistoryAndOptionalRaffleAggregateStateArgs = HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleAggregateState](state.history, currentOptionalRaffleState)
         val currentHistory: RaffleHistory = args.getHistory
         println(s"\ncurrent history = $currentHistory")
         if (condition(args)) {

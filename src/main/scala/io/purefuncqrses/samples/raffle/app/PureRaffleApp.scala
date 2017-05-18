@@ -8,15 +8,15 @@ import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
 import scala.language.higherKinds
 
-class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]] : RunF]
-  extends RaffleApp[RaffleHistoryArg, HistoryState, M] {
+class PureRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryState, ?[_]] : RunF]
+  extends RaffleApp[RaffleHistoryArg, RaffleHistoryState, M] {
 
   import implicitRunF._
 
 
   override protected val raffleBehavior = new PureRaffleBehavior[M]
 
-  override protected val input = (HistoryArg[RaffleEvent, RaffleAggregateState](empty), ()).asInstanceOf[Input]
+  override protected val input = (HistoryArg[RaffleEvent](empty), ()).asInstanceOf[Input]
 
 
 }

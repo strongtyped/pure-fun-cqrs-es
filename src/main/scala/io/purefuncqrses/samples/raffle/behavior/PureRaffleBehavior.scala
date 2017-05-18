@@ -2,7 +2,6 @@ package io.purefuncqrses.samples.raffle.behavior
 
 import java.time.OffsetDateTime
 
-import io.purefuncqrses.behavior.HistoryArg
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
 import io.purefuncqrses.samples.raffle.events._
@@ -11,15 +10,20 @@ import io.purefuncqrses.samples.raffle.behavior.RaffleBehavior.RaffleHistory
 
 import scala.language.higherKinds
 
-class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_]]]
-  extends RaffleBehavior[RaffleHistoryArg, HistoryState, M] {
+class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryState, ?[_]]]
+  extends RaffleBehavior[RaffleHistoryArg, RaffleHistoryState, M] {
 
   //
   // basic functions
   //
   override protected def getRaffleId(args: RaffleHistoryArg): RaffleId = {
     val currentRaffleHistory: RaffleHistory = args.getHistory
-    currentRaffleHistory.head.asInstanceOf[RaffleCreatedEvent].raffleId
+    currentRaffleHistory.head match {
+      case event: RaffleCreatedEvent =>
+        event.raffleId
+      case event =>
+        sys.error(s"$event is not a raffle created event (should never happen)")
+    }
   }
 
   override protected def participants(args: RaffleHistoryArg): Seq[String] = {

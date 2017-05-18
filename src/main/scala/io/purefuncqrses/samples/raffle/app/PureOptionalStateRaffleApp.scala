@@ -8,8 +8,8 @@ import io.purefuncqrses.samples.raffle.events.RaffleEvent
 
 import scala.language.higherKinds
 
-class PureOptionalStateRaffleApp[M[+ _] : SuccessF : FailureF : StateF[HistoryAndOptionalStateState, ?[_]] : RunF]
-  extends RaffleApp[RaffleHistoryAndOptionalRaffleStateArgs, HistoryAndOptionalStateState, M] {
+class PureOptionalStateRaffleApp[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryAndOptionalStateState, ?[_]] : RunF]
+  extends RaffleApp[RaffleHistoryAndOptionalRaffleAggregateStateArgs, RaffleHistoryAndOptionalStateState, M] {
 
   import implicitRunF._
 

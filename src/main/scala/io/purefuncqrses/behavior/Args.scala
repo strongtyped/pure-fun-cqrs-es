@@ -9,25 +9,20 @@ trait HasHistory[E] {
 
 }
 
-sealed trait Args[E, AS] extends HasHistory[E] {
-
-  def getOptionalAggregateState: Option[AS]
+sealed trait Args[E] extends HasHistory[E] {
 
 }
 
-case class HistoryArg[E, AS](history: History[E]) extends Args[E, AS] {
+case class HistoryArg[E](history: History[E]) extends Args[E] {
 
   override def getHistory: History[E] = history
-
-  override def getOptionalAggregateState: Option[AS] =
-    sys.error("Cannot extract optional aggregate state from history argument")
 
 }
 
-case class HistoryAndOptionalAggregateStateArgs[E, AS](history: History[E], optionalAggregateState: Option[AS]) extends Args[E, AS] {
+case class HistoryAndOptionalAggregateStateArgs[E, AS](history: History[E], optionalAggregateState: Option[AS]) extends Args[E] {
 
   override def getHistory: History[E] = history
 
-  override def getOptionalAggregateState: Option[AS] = optionalAggregateState
+  def getOptionalAggregateState: Option[AS] = optionalAggregateState
 
 }
