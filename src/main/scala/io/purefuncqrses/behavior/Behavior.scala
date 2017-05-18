@@ -17,6 +17,8 @@ object Behavior {
 
   type Handler[C, M[+ _]] = C => M[Unit]
 
+  type ArgBlock[A, M[+ _]] = A => M[Unit]
+
   type HandlerBody[A, C, M[+ _]] = (C, A) => M[Unit]
 
 
@@ -86,7 +88,13 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
 
   // do not override (not possible anyway)
 
-  protected final def updateHistory(args: A, es: E*): History[E] =
+  protected final def blockTemplate(transformer: A => A): ArgBlock[A, M] = args => {
+    val newArgs = transformer.apply(args)
+    println(s"\n$newArgs")
+    setStateFromArgs(newArgs)
+  }
+
+  protected final def updatedHistory(args: A, es: E*): History[E] =
     es.foldLeft(args.getHistory)(_ :+ _)
 
   // this is what you should define

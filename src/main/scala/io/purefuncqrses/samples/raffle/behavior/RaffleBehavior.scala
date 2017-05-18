@@ -19,6 +19,8 @@ object RaffleBehavior {
 
   type RaffleHistory = History[RaffleEvent]
 
+  type RaffleHistoryArgBlock[M[+ _]] = ArgBlock[RaffleHistoryArg, M]
+
   type PartialRaffleCommandHandler[M[+ _]] = PartialHandler[RaffleCommand, M]
 
   type PartialRaffleCommandHandlers[M[+ _]] = List[PartialRaffleCommandHandler[M]]
@@ -91,15 +93,15 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   // blocks
   //
 
-  protected def createRaffleBlock(args: A): M[Unit]
+  protected def createRaffleBlock: A => M[Unit]
 
-  protected def createRaffleAddingParticipantBlock(name: String)(args: A): M[Unit]
+  protected def createRaffleAddingParticipantBlock(name: String): A => M[Unit]
 
-  protected def addParticipantBlock(name: String)(args: A): M[Unit]
+  protected def addParticipantBlock(name: String): A => M[Unit]
 
-  protected def removeParticipantBlock(name: String)(args: A): M[Unit]
+  protected def removeParticipantBlock(name: String): A => M[Unit]
 
-  protected def selectWinnerBlock(args: A): M[Unit]
+  protected def selectWinnerBlock: A => M[Unit]
 
 
   //
