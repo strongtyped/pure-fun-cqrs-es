@@ -16,6 +16,7 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
   //
   // basic functions
   //
+
   override protected def getRaffleId(args: RaffleHistoryArg): RaffleId = {
     val currentRaffleHistory: RaffleHistory = args.getHistory
     currentRaffleHistory.head match {
@@ -44,6 +45,7 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
   //
   // basic predicates
   //
+
   override protected def isRaffleCreated(args: RaffleHistoryArg): Boolean = {
     val currentRaffleHistory: RaffleHistory = args.getHistory
     currentRaffleHistory.nonEmpty
@@ -62,6 +64,7 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHistoryStat
   //
   // blocks
   //
+
   override protected def createRaffleBlock(args: RaffleHistoryArg): M[Unit] = {
     val raffleId = RaffleId.generate()
     val raffleHistoryArg = mkRaffleHistoryArg(updateHistory(args, RaffleCreatedEvent(raffleId)))

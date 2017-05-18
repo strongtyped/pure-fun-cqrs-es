@@ -9,9 +9,8 @@ trait HasHistory[E] {
 
 }
 
-sealed trait Args[E] extends HasHistory[E] {
 
-}
+sealed trait Args[E] extends HasHistory[E]
 
 case class HistoryArg[E](history: History[E]) extends Args[E] {
 

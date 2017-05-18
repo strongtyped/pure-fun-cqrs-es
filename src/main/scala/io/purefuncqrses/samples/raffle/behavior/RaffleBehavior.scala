@@ -36,6 +36,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // basic functions
   //
+
   protected def getRaffleId(args: A): RaffleId
 
   protected def participants(args: A): Seq[String]
@@ -43,6 +44,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // basic derived functions
   //
+
   protected def winner(args: A): String = {
     val currentParticipants = participants(args)
     currentParticipants(Random.nextInt(currentParticipants.size))
@@ -52,6 +54,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // basic predicates
   //
+
   protected def isRaffleCreated(args: A): Boolean
 
   protected def hasParticipantBeenAdded(name: String, args: A): Boolean
@@ -59,6 +62,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // basic derived predicates
   //
+
   private def hasParticipants(args: A): Boolean =
   participants(args).nonEmpty
 
@@ -66,6 +70,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // derived conditions
   //
+
   protected def createRaffleCondition(args: A): Boolean =
   !isRaffleCreated(args)
 
@@ -85,6 +90,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // blocks
   //
+
   protected def createRaffleBlock(args: A): M[Unit]
 
   protected def createRaffleAddingParticipantBlock(name: String)(args: A): M[Unit]
@@ -99,6 +105,7 @@ abstract class RaffleBehavior[A <: RaffleArgs, S <: RaffleState, M[+ _] : Succes
   //
   // handlers
   //
+
   private lazy val createRaffleCommandHandler: PartialRaffleCommandHandler[M] = {
     case command: CreateRaffleCommand.type =>
       println(s"\ncase $command =>")

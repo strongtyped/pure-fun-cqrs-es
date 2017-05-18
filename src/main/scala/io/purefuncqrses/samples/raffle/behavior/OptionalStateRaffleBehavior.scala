@@ -17,13 +17,13 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHi
   import implicitStateF._
 
 
-  var currentOptionalRaffleState: Option[RaffleAggregate] = None
+  var currentOptionalRaffleAggregate: Option[RaffleAggregate] = None
 
 
   override protected def setStateFromArgs(args: RaffleHistoryAndOptionalRaffleAggregateArgs): M[Unit] = {
     val newRaffleHistory: RaffleHistory = args.getHistory
-    val newOptionalRaffleState: Option[RaffleAggregate] = args.getOptionalAggregate
-    this.currentOptionalRaffleState = newOptionalRaffleState
+    val newOptionalRaffleAggregate: Option[RaffleAggregate] = args.getOptionalAggregate
+    currentOptionalRaffleAggregate = newOptionalRaffleAggregate
     val state: RaffleHistoryState = HistoryArg[RaffleEvent](newRaffleHistory)
     write {
       state
@@ -32,9 +32,9 @@ class OptionalStateRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[RaffleHi
 
   override protected def handlerTemplate[Cmd](condition: RaffleHistoryAndOptionalRaffleAggregateArgs => Boolean, block: RaffleHistoryAndOptionalRaffleAggregateArgs => M[Unit]): Handler[Cmd, M] = { command =>
     read(()) flatMap { state =>
-      val args: RaffleHistoryAndOptionalRaffleAggregateArgs = HistoryAndOptionalAggregateArgs[RaffleEvent, RaffleAggregate](state.history, currentOptionalRaffleState)
+      val args: RaffleHistoryAndOptionalRaffleAggregateArgs =
+        mkRaffleHistoryAndOptionalRaffleAggregateArgs(state.history, currentOptionalRaffleAggregate)
       val currentHistory: RaffleHistory = args.getHistory
-      println(s"\ncurrent history = $currentHistory")
       if (condition(args)) {
         block(args)
       } else {

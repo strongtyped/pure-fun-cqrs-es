@@ -48,7 +48,7 @@ import Behavior._
   * monad
   */
 
-abstract class Behavior[A <: HasHistory[E], S <: HasHistory[E], C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
+abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : FailureF : StateF[S, ?[_]]] {
 
   private val implicitSuccessF = implicitly[SuccessF[M]]
 
@@ -64,6 +64,7 @@ abstract class Behavior[A <: HasHistory[E], S <: HasHistory[E], C, E, I, M[+ _] 
 
   // pure default: A = S
   // override for impure state (A != S)
+
   protected def setStateFromArgs(args: A): M[Unit] =
   write {
     args.asInstanceOf[S]
@@ -71,6 +72,7 @@ abstract class Behavior[A <: HasHistory[E], S <: HasHistory[E], C, E, I, M[+ _] 
 
   // pure default: A = S
   // override for impure state (A != S)
+
   protected def handlerTemplate[Cmd <: C](condition: A => Boolean, block: A => M[Unit]): Handler[Cmd, M] = { command =>
     read(()) flatMap { state =>
       val args: A = state.asInstanceOf[A]
@@ -83,6 +85,7 @@ abstract class Behavior[A <: HasHistory[E], S <: HasHistory[E], C, E, I, M[+ _] 
   }
 
   // do not override (not possible anyway)
+
   protected final def updateHistory(args: A, es: E*): History[E] =
     es.foldLeft(args.getHistory)(_ :+ _)
 
@@ -90,12 +93,12 @@ abstract class Behavior[A <: HasHistory[E], S <: HasHistory[E], C, E, I, M[+ _] 
   protected val partialHandlers: PartialHandlers[C, M]
 
   private val failurePartialHandler: PartialHandler[C, M] = {
-    case c =>
-      println(s"\ncase $c =>")
-      failure(new IllegalStateException(s"unknown $c"))
+    case command =>
+      failure(new IllegalStateException(s"unknown command $command"))
   }
 
   // this is what you should use
+
   def handleAll: HandleAll[C, M] =
     traverse(partialHandlers.foldRight(failurePartialHandler)(_ orElse _))(_).ignore
 

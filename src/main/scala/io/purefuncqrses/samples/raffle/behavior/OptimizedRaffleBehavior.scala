@@ -16,6 +16,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
   //
   // basic functions
   //
+
   override protected def getRaffleId(args: RaffleHistoryAndOptionalRaffleAggregateArgs): RaffleId = {
     val currentOptionalRaffleAggregateState: Option[RaffleAggregate] = args.getOptionalAggregate
     currentOptionalRaffleAggregateState.get.raffleId
@@ -30,6 +31,7 @@ abstract class OptimizedRaffleBehavior[S <: RaffleState, M[+ _] : SuccessF : Fai
   //
   // basic predicates
   //
+
   override protected def isRaffleCreated(args: RaffleHistoryAndOptionalRaffleAggregateArgs): Boolean = {
     val currentOptionalRaffleAggregateState: Option[RaffleAggregate] = args.getOptionalAggregate
     currentOptionalRaffleAggregateState.isDefined
