@@ -2,7 +2,6 @@ package io.purefuncqrses.behavior
 
 import io.purefuncqrses.features.{SuccessF, FailureF, StateF}
 import io.purefuncqrses.features.ops.FeatureOps._
-import io.purefuncqrses.samples.raffle.behavior.State
 
 import scala.collection.immutable
 import scala.language.higherKinds
@@ -67,6 +66,17 @@ abstract class Behavior[A <: HasHistory[E], S, C, E, I, M[+ _] : SuccessF : Fail
     }
   }
 
+  protected def newHistoryFor(i: I, a: A, es: E*): History[E] = {
+    val newHistory: History[E] = es.foldLeft(a.getHistory)(_ :+ _)
+    println(s"new history = $newHistory")
+    newHistory
+  }
+
+  protected def newHistoryFor(a: A, es: E*): History[E] = {
+    val newHistory: History[E] = es.foldLeft(a.getHistory)(_ :+ _)
+    println(s"new history = $newHistory")
+    newHistory
+  }
 
   protected val partialHandlers: PartialHandlers[C, M]
 

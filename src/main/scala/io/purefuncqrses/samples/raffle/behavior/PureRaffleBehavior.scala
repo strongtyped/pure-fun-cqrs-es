@@ -1,5 +1,7 @@
 package io.purefuncqrses.samples.raffle.behavior
 
+import java.time.OffsetDateTime
+
 import io.purefuncqrses.behavior.HistoryArg
 import io.purefuncqrses.util.Util._
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
@@ -57,27 +59,30 @@ class PureRaffleBehavior[M[+ _] : SuccessF : FailureF : StateF[HistoryState, ?[_
   // more complex functions
   //
   override protected def newArgsForCreateRaffle(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(args)
+    val raffleId = RaffleId.generate()
+    val newRaffleHistory = newHistoryFor(raffleId, args, RaffleCreatedEvent(raffleId))
     HistoryArg[RaffleEvent, RaffleState](newRaffleHistory)
   }
 
   override protected def newArgsForCreateRaffleAddingParticipant(name: String)(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val (_, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, args)
+    val raffleId = RaffleId.generate()
+    val newRaffleHistory = newHistoryFor(raffleId, args, RaffleCreatedEvent(raffleId), ParticipantAddedEvent(name, raffleId))
     HistoryArg[RaffleEvent, RaffleState](newRaffleHistory)
   }
 
   override protected def newArgsForAddParticipant(name: String)(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
+    val newRaffleHistory = newHistoryFor(args, ParticipantAddedEvent(name, getRaffleId(args)))
     HistoryArg[RaffleEvent, RaffleState](newRaffleHistory)
   }
 
   override protected def newArgsForRemoveParticipant(name: String)(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val newRaffleHistory = newRaffleHistoryForRemoveParticipantFrom(name, args)
+    val newRaffleHistory = newHistoryFor(args, ParticipantRemovedEvent(name, getRaffleId(args)))
     HistoryArg[RaffleEvent, RaffleState](newRaffleHistory)
   }
 
   override protected def newArgsForSelectWinner(args: RaffleHistoryArg): RaffleHistoryArg = {
-    val (_, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
+    val raffleWinner = winner(args)
+    val newRaffleHistory = newHistoryFor(args, WinnerSelectedEvent(raffleWinner, OffsetDateTime.now, getRaffleId(args)))
     HistoryArg[RaffleEvent, RaffleState](newRaffleHistory)
   }
 

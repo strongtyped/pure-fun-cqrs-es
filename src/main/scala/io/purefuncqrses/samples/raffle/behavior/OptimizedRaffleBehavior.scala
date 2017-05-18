@@ -1,9 +1,13 @@
 package io.purefuncqrses.samples.raffle.behavior
 
+import java.time.OffsetDateTime
+
 import io.purefuncqrses.behavior.HistoryAndOptionalAggregateStateArgs
 import io.purefuncqrses.features.{FailureF, StateF, SuccessF}
-import io.purefuncqrses.samples.raffle.events.RaffleEvent
+import io.purefuncqrses.samples.raffle.events._
 import io.purefuncqrses.samples.raffle.id.RaffleId
+
+import io.purefuncqrses.util.Util._
 
 import scala.language.higherKinds
 
@@ -37,37 +41,58 @@ abstract class OptimizedRaffleBehavior[S <: State, M[+ _] : SuccessF : FailureF 
     currentOptionalRaffleState.get.asInstanceOf[OpenState].participants.contains(name)
   }
 
-
   //
   // more complex functions
   //
   override protected def newArgsForCreateRaffle(args: RaffleHistoryAndOptionalRaffleStateArgs): RaffleHistoryAndOptionalRaffleStateArgs = {
-    val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleFrom(args)
-    val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleFrom(raffleId)
+    val raffleId = RaffleId.generate()
+    val newRaffleHistory = newHistoryFor(raffleId, args, RaffleCreatedEvent(raffleId))
+    val newOptionalRaffleState = Some(OpenState(raffleId, List()))
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
     HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newArgsForCreateRaffleAddingParticipant(name: String)(args: RaffleHistoryAndOptionalRaffleStateArgs): RaffleHistoryAndOptionalRaffleStateArgs = {
-    val (raffleId, newRaffleHistory) = newRaffleHistoryForCreateRaffleAddingParticipantFrom(name, args)
-    val newOptionalRaffleState = newOptionalRaffleStateForCreateRaffleAddingParticipantFrom(name, raffleId)
+    val raffleId = RaffleId.generate()
+    val newRaffleHistory = newHistoryFor(raffleId, args, RaffleCreatedEvent(raffleId), ParticipantAddedEvent(name, raffleId))
+    val tmpOptionalRaffleState = Some(OpenState(raffleId, List()))
+    val newOptionalRaffleState = tmpOptionalRaffleState map { currentRaffleState =>
+      currentRaffleState.copy(participants = currentRaffleState.participants.add(name))
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
     HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newArgsForAddParticipant(name: String)(args: RaffleHistoryAndOptionalRaffleStateArgs): RaffleHistoryAndOptionalRaffleStateArgs = {
-    val newRaffleHistory = newRaffleHistoryForAddParticipantFrom(name, args)
-    val newOptionalRaffleState = newOptionalRaffleStateForAddParticipantFrom(name, args)
+    val newRaffleHistory = newHistoryFor(args, ParticipantAddedEvent(name, getRaffleId(args)))
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
+    val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
+      val openState = currentRaffleState.asInstanceOf[OpenState]
+      openState.copy(participants = openState.participants.add(name))
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
     HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newArgsForRemoveParticipant(name: String)(args: RaffleHistoryAndOptionalRaffleStateArgs): RaffleHistoryAndOptionalRaffleStateArgs = {
-    val newRaffleHistory = newRaffleHistoryForRemoveParticipantFrom(name, args)
-    val newOptionalRaffleState = newOptionalRaffleStateForRemoveParticipantFrom(name, args)
+    val newRaffleHistory = newHistoryFor(args, ParticipantRemovedEvent(name, getRaffleId(args)))
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
+    val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
+      val openState = currentRaffleState.asInstanceOf[OpenState]
+      openState.copy(participants = openState.participants.remove(name))
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
     HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](newRaffleHistory, newOptionalRaffleState)
   }
 
   override protected def newArgsForSelectWinner(args: RaffleHistoryAndOptionalRaffleStateArgs): RaffleHistoryAndOptionalRaffleStateArgs = {
-    val (winner, newRaffleHistory) = newRaffleHistoryForSelectWinnerFrom(args)
-    val newOptionalRaffleState = newOptionalRaffleStateForSelectWinnerFrom(winner, args)
+    val raffleWinner = winner(args)
+    val newRaffleHistory = newHistoryFor(args, WinnerSelectedEvent(winner(args), OffsetDateTime.now, getRaffleId(args)))
+    val currentOptionalRaffleState: Option[RaffleState] = args.getOptionalAggregateState
+    val newOptionalRaffleState = currentOptionalRaffleState map { currentRaffleState =>
+      ClosedState(currentRaffleState.raffleId, raffleWinner)
+    }
+    println(s"\nnew optional raffle state = $newOptionalRaffleState")
     HistoryAndOptionalAggregateStateArgs[RaffleEvent, RaffleState](newRaffleHistory, newOptionalRaffleState)
   }
 
